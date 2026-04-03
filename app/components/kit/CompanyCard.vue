@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="relative isolate overflow-hidden border-border/70 bg-card/75 p-4 backdrop-blur">
+  <UiCard class="relative isolate h-full overflow-hidden border-border/70 bg-card/90 p-4 backdrop-blur">
     <div
       aria-hidden="true"
       class="pointer-events-none absolute -top-10 left-1/2 z-0 h-24 w-56 -translate-x-1/2 rounded-full bg-linear-to-br from-primary/30 via-primary/10 to-transparent opacity-35 blur-2xl"
@@ -10,19 +10,30 @@
     />
     <div aria-hidden="true" class="company-grain pointer-events-none absolute inset-0 z-0 opacity-12" />
 
-    <div class="relative z-10 space-y-4">
+    <div class="relative z-10 flex h-full flex-col gap-4">
       <div class="space-y-2">
         <UiCardTitle>{{ props.title }}</UiCardTitle>
-        <UiCardDescription>{{ props.description }}</UiCardDescription>
+        <UiCardDescription v-if="hasDescription">{{ props.description }}</UiCardDescription>
         <p
+          v-if="hasSummary"
           class="truncate rounded-md border border-border/40 text-primary px-2 py-1 text-sm italic"
           :title="props.summary"
         >
           {{ props.summary }}
         </p>
       </div>
-      <UiCardAction>
-        <UiButton @click="navigateTo(`/dashboard/${props.id}`)">Открыть панель</UiButton>
+      <UiCardAction class="mt-auto flex justify-end">
+        <div class="flex flex-wrap justify-end gap-2">
+          <UiButton @click="navigateTo(`/dashboard/${props.id}`)">Открыть панель</UiButton>
+          <UiButton
+            variant="secondary"
+            size="sm"
+            :disabled="props.isDeleting"
+            @click="emits('delete')"
+          >
+            Удалить
+          </UiButton>
+        </div>
       </UiCardAction>
     </div>
   </UiCard>
@@ -34,14 +45,23 @@ interface Props {
   title?: string
   description?: string
   summary?: string
+  isDeleting?: boolean
 }
+
+const emits = defineEmits<{
+  (e: 'delete'): void
+}>()
 
 const props = withDefaults(defineProps<Props>(), {
   id: '1',
   title: 'Company title',
   description: 'Company description',
   summary: 'Short company summary',
+  isDeleting: false,
 })
+
+const hasDescription = computed(() => Boolean(props.description?.trim()))
+const hasSummary = computed(() => Boolean(props.summary?.trim()))
 </script>
 
 <style scoped>

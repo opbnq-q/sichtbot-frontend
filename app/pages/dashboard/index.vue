@@ -11,6 +11,10 @@
     <div aria-hidden="true" class="dashboard-grain pointer-events-none fixed top-0 left-1/2 z-0 h-96 w-230 -translate-x-1/2 opacity-35" />
 
     <div class="relative z-10">
+      <div v-if="isLoading" class="mb-3 h-1 w-full overflow-hidden rounded-full bg-muted/60">
+        <div class="loading-progress h-full w-1/3 rounded-full bg-primary/80" />
+      </div>
+
       <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <KitCompanyCard
           v-for="company in companies"
@@ -19,8 +23,17 @@
           :title="company.title"
           :description="company.description"
           :summary="company.summary"
+          :is-deleting="isDeleting(company.id)"
+          @delete="onDeleteCompany(company.id)"
         ></KitCompanyCard>
       </div>
+
+      <UiCard v-if="hasFetched && !isLoading && companies.length === 0" class="mt-4 p-4">
+        <UiCardTitle>Компаний пока нет</UiCardTitle>
+        <UiCardDescription>
+          Добавьте первую компанию через кнопку внизу справа.
+        </UiCardDescription>
+      </UiCard>
 
       <AlertDialog v-model:open="isCreateOpen">
         <AlertDialogTrigger as-child>
@@ -36,22 +49,22 @@
           <AlertDialogHeader>
             <AlertDialogTitle>Добавить компанию</AlertDialogTitle>
             <AlertDialogDescription>
-              Заполните title и description для новой карточки.
+              Заполните title для новой карточки. Description — по желанию.
             </AlertDialogDescription>
           </AlertDialogHeader>
 
           <form class="space-y-3" @submit.prevent="onCreateCompany">
             <div class="space-y-1">
               <p class="text-sm font-medium">Title</p>
-              <UiInput v-model="form.title" placeholder="Название компании" required />
+              <UiInput v-model="form.title" placeholder="Название компании" required :disabled="isCreating" />
             </div>
             <div class="space-y-1">
               <p class="text-sm font-medium">Description</p>
-              <UiInput v-model="form.description" placeholder="Краткое описание" required />
+              <UiInput v-model="form.description" placeholder="Краткое описание" :disabled="isCreating" />
             </div>
             <AlertDialogFooter>
-              <AlertDialogCancel type="button" @click="onCancelCreate">Отмена</AlertDialogCancel>
-              <UiButton type="submit">Сохранить</UiButton>
+              <AlertDialogCancel type="button" @click="onCancelCreate" :disabled="isCreating">Отмена</AlertDialogCancel>
+              <UiButton type="submit" :disabled="isCreating">Сохранить</UiButton>
             </AlertDialogFooter>
           </form>
         </AlertDialogContent>
@@ -65,41 +78,7 @@ definePageMeta({
   middleware: 'auth'
 })
 
-type Company = {
-  id: string
-  title: string
-  description: string
-  summary: string
-}
-
-const initialCompanies: Company[] = [
-  {
-    id: '1',
-    title: 'Company title',
-    description: 'Company description',
-    summary: 'Ключевые показатели, аналитика и активность за последнюю неделю.',
-  },
-  {
-    id: '2',
-    title: 'Tech company',
-    description: 'Digital products and growth strategy',
-    summary: 'Продуктовые гипотезы, воронка активации и приоритетные эксперименты.',
-  },
-  {
-    id: '3',
-    title: 'Retail company',
-    description: 'Omnichannel sales and analytics',
-    summary: 'Динамика онлайн/офлайн продаж, маржинальность и прогноз спроса.',
-  },
-  {
-    id: '4',
-    title: 'Service company',
-    description: 'Automation and customer support',
-    summary: 'Нагрузка команды, SLA по обращениям и зона оптимизации процессов.',
-  },
-]
-
-const companies = ref<Company[]>(initialCompanies)
+import { storeToRefs } from 'pinia'
 
 const isCreateOpen = ref(false)
 const form = reactive({
@@ -107,26 +86,30 @@ const form = reactive({
   description: '',
 })
 
-const onCreateCompany = () => {
+const companiesStore = useCompaniesStore()
+const { companies, isLoading, hasFetched, isCreating } = storeToRefs(companiesStore)
+const { fetchCompanies, deleteCompany, createCompany, isDeleting } = companiesStore
+
+const onCreateCompany = async () => {
   const title = form.title.trim()
   const description = form.description.trim()
 
-  if (!title || !description) {
+  if (!title) {
     return
   }
 
-  const nextId = String(companies.value.length + 1)
-
-  companies.value.unshift({
-    id: nextId,
+  await createCompany({
     title,
     description,
-    summary: description,
   })
 
   form.title = ''
   form.description = ''
   isCreateOpen.value = false
+}
+
+const onDeleteCompany = async (id: string) => {
+  await deleteCompany(id)
 }
 
 const onCancelCreate = () => {
@@ -147,6 +130,10 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Plus } from 'lucide-vue-next'
 
+onMounted(async () => {
+  await fetchCompanies()
+})
+
 </script>
 
 <style scoped>
@@ -161,5 +148,18 @@ import { Plus } from 'lucide-vue-next'
   filter: blur(0.5px);
   -webkit-mask-image: radial-gradient(ellipse at center, rgb(0 0 0 / 1) 42%, rgb(0 0 0 / 0) 78%);
   mask-image: radial-gradient(ellipse at center, rgb(0 0 0 / 1) 42%, rgb(0 0 0 / 0) 78%);
+}
+
+.loading-progress {
+  animation: loadingBarMove 1s ease-in-out infinite;
+}
+
+@keyframes loadingBarMove {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(420%);
+  }
 }
 </style>
