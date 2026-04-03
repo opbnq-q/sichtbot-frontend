@@ -7,8 +7,7 @@
             v-if="!isMobile"
             ref="autoCursorRef"
             aria-hidden="true"
-            class="pointer-events-none fixed left-0 top-0 z-[9999] h-7 w-7 opacity-0 transition-opacity duration-500"
-            style="transition-property: transform, opacity; transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);"
+            class="pointer-events-none fixed left-0 top-0 z-9999 h-7 w-7 opacity-0 transition-opacity duration-500"
         >
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full filter drop-shadow-md">
                 <path d="M5.5 3.21V20.8C5.5 21.46 6.27 21.82 6.77 21.4L11.43 17.38C11.66 17.18 11.95 17.07 12.25 17.07H19.5C20.17 17.07 20.5 16.28 20.01 15.82L6.87 3.03C6.46 2.64 5.5 2.92 5.5 3.21Z" fill="white" stroke="black" stroke-width="1.5"/>
@@ -18,7 +17,7 @@
         <div
             v-if="!isMobile"
             ref="userFollowerRef"
-            class="user-cursor-follower pointer-events-none fixed left-0 top-0 z-[9998] size-6 rounded-full border border-primary/60 mix-blend-difference"
+            class="user-cursor-follower pointer-events-none fixed left-0 top-0 z-9998 size-6 rounded-full border border-primary/60 mix-blend-difference"
         />
 
         <div
@@ -69,10 +68,81 @@ let autoLoopTimer: ReturnType<typeof setTimeout> | null = null
 let currentAutoStep = 0
 let autoCursorActiveTarget: HTMLElement | null = null
 
-const moveAutoCursor = (x: number, y: number, duration: number = 800) => {
-    if (!autoCursorRef.value) return
-    autoCursorRef.value.style.transitionDuration = `${duration}ms`
-    autoCursorRef.value.style.transform = `translate(${x}px, ${y}px)`
+const autoCursorPos = { x: 0, y: 0 }
+let autoCursorAnimationId: number | null = null
+let autoAnimStartTime = 0
+let autoAnimDuration = 800
+let autoAnimStartDocPos = { x: 0, y: 0 }
+
+const autoCursorTarget = {
+    el: null as HTMLElement | null,
+    offsetX: 0,
+    offsetY: 0,
+    staticX: 0,
+    staticY: 0
+}
+
+const updateAutoCursorFrame = () => {
+    const time = performance.now()
+    if (!autoAnimStartTime) autoAnimStartTime = time
+    const elapsed = time - autoAnimStartTime
+    const progress = autoAnimDuration > 0 ? Math.min(elapsed / autoAnimDuration, 1) : 1
+
+    const ease = 1 - Math.pow(1 - progress, 3)
+
+    let targetDocX, targetDocY
+    if (autoCursorTarget.el) {
+        const rect = autoCursorTarget.el.getBoundingClientRect()
+        targetDocX = rect.left + window.scrollX + autoCursorTarget.offsetX
+        targetDocY = rect.top + window.scrollY + autoCursorTarget.offsetY
+    } else {
+        targetDocX = autoCursorTarget.staticX
+        targetDocY = autoCursorTarget.staticY
+    }
+
+    const currentDocX = autoAnimStartDocPos.x + (targetDocX - autoAnimStartDocPos.x) * ease
+    const currentDocY = autoAnimStartDocPos.y + (targetDocY - autoAnimStartDocPos.y) * ease
+
+    autoCursorPos.x = currentDocX - window.scrollX
+    autoCursorPos.y = currentDocY - window.scrollY
+
+    if (autoCursorRef.value) {
+        autoCursorRef.value.style.transform = `translate(${autoCursorPos.x}px, ${autoCursorPos.y}px)`
+    }
+
+    if (progress < 1 || autoCursorTarget.el) {
+        autoCursorAnimationId = requestAnimationFrame(updateAutoCursorFrame)
+    }
+}
+
+const moveAutoCursorToEl = (el: HTMLElement, offsetX: number, offsetY: number, duration: number) => {
+    autoCursorTarget.el = el
+    autoCursorTarget.offsetX = offsetX
+    autoCursorTarget.offsetY = offsetY
+    
+    autoAnimStartDocPos.x = autoCursorPos.x + window.scrollX
+    autoAnimStartDocPos.y = autoCursorPos.y + window.scrollY
+    
+    autoAnimDuration = duration
+    autoAnimStartTime = performance.now()
+
+    if (autoCursorAnimationId) cancelAnimationFrame(autoCursorAnimationId)
+    autoCursorAnimationId = requestAnimationFrame(updateAutoCursorFrame)
+}
+
+const moveAutoCursorToDoc = (x: number, y: number, duration: number) => {
+    autoCursorTarget.el = null
+    autoCursorTarget.staticX = x
+    autoCursorTarget.staticY = y
+    
+    autoAnimStartDocPos.x = autoCursorPos.x + window.scrollX
+    autoAnimStartDocPos.y = autoCursorPos.y + window.scrollY
+    
+    autoAnimDuration = duration
+    autoAnimStartTime = performance.now()
+
+    if (autoCursorAnimationId) cancelAnimationFrame(autoCursorAnimationId)
+    autoCursorAnimationId = requestAnimationFrame(updateAutoCursorFrame)
 }
 
 const clearHoverEffects = () => {
@@ -91,7 +161,9 @@ const runAutoSequence = () => {
 
     if (currentAutoStep === 0) {
         autoCursorRef.value.classList.add('opacity-0')
-        moveAutoCursor(window.innerWidth + 100, window.innerHeight / 2, 0)
+        autoCursorPos.x = window.innerWidth + 100
+        autoCursorPos.y = window.innerHeight / 2
+        moveAutoCursorToDoc(window.innerWidth + 100 + window.scrollX, window.innerHeight / 2 + window.scrollY, 0)
         
         autoLoopTimer = setTimeout(() => {
             if (isDialogOpen.value) return
@@ -106,13 +178,8 @@ const runAutoSequence = () => {
         const targets = document.querySelectorAll('.grid .cursor-interactive')
         if (targets.length) {
             const target = targets[Math.floor(Math.random() * targets.length)] as HTMLElement
-            const rect = target.getBoundingClientRect()
             
-            moveAutoCursor(
-                rect.left + rect.width / 3 + window.scrollX,
-                rect.top + rect.height / 3 + window.scrollY,
-                700
-            )
+            moveAutoCursorToEl(target, target.offsetWidth / 3, target.offsetHeight / 3, 700)
 
             autoLoopTimer = setTimeout(() => {
                 if (isDialogOpen.value) return
@@ -132,13 +199,7 @@ const runAutoSequence = () => {
     }
 
     if (currentAutoStep === 2) {
-        const rect = buttonEl.getBoundingClientRect()
-        
-        moveAutoCursor(
-            rect.left + rect.width / 2 - 10 + window.scrollX, 
-            rect.top + rect.height / 2 - 5 + window.scrollY,
-            1000
-        )
+        moveAutoCursorToEl(buttonEl, buttonEl.offsetWidth / 2 - 10, buttonEl.offsetHeight / 2 - 5, 1000)
 
         autoLoopTimer = setTimeout(() => {
             if (isDialogOpen.value) return
@@ -159,11 +220,7 @@ const runAutoSequence = () => {
         autoLoopTimer = setTimeout(() => {
             buttonEl.classList.remove('scale-95')
             
-            moveAutoCursor(
-                window.innerWidth * 0.9 + window.scrollX,
-                window.innerHeight * 0.9 + window.scrollY,
-                900
-            )
+            moveAutoCursorToDoc(window.innerWidth * 0.9 + window.scrollX, window.innerHeight * 0.9 + window.scrollY, 900)
 
             autoLoopTimer = setTimeout(() => {
                 autoCursorRef.value?.classList.add('opacity-0')
@@ -247,6 +304,7 @@ onBeforeUnmount(() => {
     if (autoLoopTimer) clearTimeout(autoLoopTimer)
     window.removeEventListener('mousemove', handleMouseMove)
     if (followerAnimationId) cancelAnimationFrame(followerAnimationId)
+    if (autoCursorAnimationId) cancelAnimationFrame(autoCursorAnimationId)
 })
 </script>
 
@@ -283,7 +341,6 @@ onBeforeUnmount(() => {
     background-color: rgb(255 255 255 / 0.1);
     border-color: rgba(255, 255, 255, 0.9);
     backdrop-filter: blur(1px);
-    mix-blend-difference: normal;
 }
 
 .user-cursor-follower.sticky-primary {
