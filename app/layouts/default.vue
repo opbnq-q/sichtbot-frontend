@@ -1,6 +1,6 @@
 <template>
   <div class="pt-4 px-4">
-    <header class="fixed top-0 left-0 z-20 w-full border-b border-border/60 bg-card/80 p-4 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/65">
+    <header class="fixed top-0 left-0 z-20 w-full border-b border-border/60 bg-card/80 p-4 shadow-sm backdrop-blur supports-backdrop-filter:bg-card/65">
       <div class="mx-auto flex w-full items-center justify-between gap-3">
         <div class="flex cursor-pointer gap-2 max-md:flex-col max-md:gap-0" @click="() => navigateTo('/')">
           
@@ -10,7 +10,7 @@
 
         <div class="flex items-center gap-2">
           <nav v-if="$route.fullPath != '/auth'" class="hidden px-1 md:block">
-            <div class="inline-flex items-center gap-1 rounded-xl border border-border/70 bg-card/70 p-0.5 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/60">
+            <div class="inline-flex items-center gap-1 rounded-xl border border-border/70 bg-card/70 p-0.5 shadow-sm backdrop-blur supports-backdrop-filter:bg-card/60">
               <NavLink
                 v-for="item in links"
                 :key="item.link.url"
@@ -22,7 +22,7 @@
           </nav>
 
           <DropdownMenu v-if="$route.fullPath != '/auth'">
-            <div class="inline-flex items-center rounded-xl border border-border/70 bg-card/70 p-0.5 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/60 md:hidden">
+            <div class="inline-flex items-center rounded-xl border border-border/70 bg-card/70 p-0.5 shadow-sm backdrop-blur supports-backdrop-filter:bg-card/60 md:hidden">
               <DropdownMenuTrigger as-child>
                 <Button variant="ghost" size="icon-sm" class="size-8 rounded-md" aria-label="Открыть меню навигации">
                   <MenuIcon class="size-4" />
@@ -53,7 +53,7 @@
             Выйти
           </Button>
 
-          <div class="inline-flex items-center rounded-xl border border-border/70 bg-card/70 p-0.5 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/60">
+          <div class="inline-flex items-center rounded-xl border border-border/70 bg-card/70 p-0.5 shadow-sm backdrop-blur supports-backdrop-filter:bg-card/60">
             <kit-color-mode></kit-color-mode>
           </div>
         </div>

@@ -1,5 +1,6 @@
 <template>
   <WidgetsCompanyResourcesDialog
+    
     :open="isResourcesDialogOpen"
     :resources-busy="isResourcesBusy"
     :resources-loading="isResourcesLoading"

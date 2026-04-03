@@ -1,34 +1,35 @@
 <template>
   <Dialog :open="props.open" @update:open="(value) => emits('update:open', value)">
-    <DialogTrigger as-child>
+    <DialogTrigger as-child class="w-full">
       <UiButton>
         Ресурсы
       </UiButton>
     </DialogTrigger>
 
-    <DialogContent class="sm:max-w-2xl">
-      <DialogHeader>
+    <DialogContent class="sm:max-w-xl max-h-[80vh] flex flex-col">
+      <DialogHeader class="shrink-0">
         <DialogTitle>Цифровые ресурсы компании</DialogTitle>
         <DialogDescription>
           Выберите тип ресурса, укажите название и URL, затем выполните действие рядом с полем.
         </DialogDescription>
       </DialogHeader>
 
-      <div v-if="props.resourcesBusy" class="h-1 w-full overflow-hidden rounded-full bg-muted/60">
+      <div v-if="props.resourcesBusy" class="h-1 w-full shrink-0 overflow-hidden rounded-full bg-muted/60 mt-2">
         <div class="loading-progress h-full w-1/3 rounded-full bg-primary/80" />
       </div>
 
-      <div class="space-y-3">
-        <div class="flex flex-wrap items-center gap-2 rounded-lg border border-border/60 bg-card/80 p-2">
+      <div class="space-y-4 overflow-y-auto pr-2 mt-4 flex-1">
+        <div class="grid grid-cols-1 gap-3 rounded-lg border border-border/60 bg-card/80 p-3">
           <KitResourceTypeSelect
             :model-value="props.newResourceType"
+            class="w-full"
             :disabled="props.isCreatingResource"
             @update:model-value="(value) => emits('update:newResourceType', value)"
           />
 
           <UiInput
             :model-value="props.newResourceName"
-            class="flex-1"
+            class="w-full"
             placeholder="Название ресурса"
             :disabled="props.isCreatingResource"
             @update:model-value="(value) => emits('update:newResourceName', String(value))"
@@ -36,14 +37,14 @@
 
           <UiInput
             :model-value="props.newResourceUrl"
-            class="flex-1"
+            class="w-full"
             placeholder="URL ресурса"
             :disabled="props.isCreatingResource"
             @update:model-value="(value) => emits('update:newResourceUrl', String(value))"
           />
 
           <UiButton
-            class="min-w-24"
+            class="w-full"
             v-combinepressed="[Keywords.Ctrl, Keywords.Enter]"
             :disabled="props.isCreatingResource"
             :class="{ 'animate-pulse': props.isCreatingResource }"
@@ -61,17 +62,18 @@
         <div
           v-for="resource in props.resourceRows"
           :key="resource.id"
-          class="flex flex-wrap items-center gap-2 rounded-lg border border-border/60 bg-card/80 p-2"
+          class="grid grid-cols-1 gap-3 rounded-lg border border-border/60 bg-card/80 p-3"
         >
           <KitResourceTypeSelect
             :model-value="resource.type"
+            class="w-full"
             :disabled="props.isUpdating(resource.id) || props.isDeleting(resource.id)"
             @update:model-value="(value) => emits('update:rowType', resource.id, value)"
           />
 
           <UiInput
             :model-value="resource.name"
-            class="flex-1"
+            class="w-full"
             placeholder="Название ресурса"
             :disabled="props.isUpdating(resource.id) || props.isDeleting(resource.id)"
             @update:model-value="(value) => emits('update:rowName', resource.id, String(value))"
@@ -79,33 +81,35 @@
 
           <UiInput
             :model-value="resource.url"
-            class="flex-1"
+            class="w-full"
             placeholder="URL ресурса"
             :disabled="props.isUpdating(resource.id) || props.isDeleting(resource.id)"
             @update:model-value="(value) => emits('update:rowUrl', resource.id, String(value))"
           />
 
-          <UiButton
-            variant="secondary"
-            class="min-w-24"
-            :disabled="props.isUpdating(resource.id) || props.isDeleting(resource.id)"
-            :class="{ 'animate-pulse': props.isUpdating(resource.id) }"
-            @click="emits('update:row', resource.id)"
-          >
-            <Save class="mr-1 size-4" />
-            {{ props.isUpdating(resource.id) ? 'Обновление...' : 'Обновить' }}
-          </UiButton>
+          <div class="grid grid-cols-2 gap-2 w-full">
+            <UiButton
+              variant="secondary"
+              class="w-full"
+              :disabled="props.isUpdating(resource.id) || props.isDeleting(resource.id)"
+              :class="{ 'animate-pulse': props.isUpdating(resource.id) }"
+              @click="emits('update:row', resource.id)"
+            >
+              <Save class="mr-1 size-4" />
+              {{ props.isUpdating(resource.id) ? 'Сохранение...' : 'Обновить' }}
+            </UiButton>
 
-          <UiButton
-            variant="outline"
-            class="min-w-24"
-            :disabled="props.isDeleting(resource.id) || props.isUpdating(resource.id)"
-            :class="{ 'animate-pulse': props.isDeleting(resource.id) }"
-            @click="emits('delete:row', resource.id)"
-          >
-            <Trash2 class="mr-1 size-4" />
-            {{ props.isDeleting(resource.id) ? 'Удаление...' : 'Удалить' }}
-          </UiButton>
+            <UiButton
+              variant="outline"
+              class="w-full"
+              :disabled="props.isDeleting(resource.id) || props.isUpdating(resource.id)"
+              :class="{ 'animate-pulse': props.isDeleting(resource.id) }"
+              @click="emits('delete:row', resource.id)"
+            >
+              <Trash2 class="mr-1 size-4" />
+              {{ props.isDeleting(resource.id) ? 'Удаление...' : 'Удалить' }}
+            </UiButton>
+          </div>
         </div>
       </div>
     </DialogContent>
@@ -173,5 +177,17 @@ const emits = defineEmits<{
   100% {
     transform: translateX(420%);
   }
+}
+
+/* Стили для кастомного скроллбара (опционально) */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 6px;
+}
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--border) / 0.6);
+  border-radius: 20px;
 }
 </style>

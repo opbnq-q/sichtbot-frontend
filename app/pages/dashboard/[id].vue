@@ -1,13 +1,15 @@
 <template>
   <div class="space-y-4">
-    <div class="flex flex-wrap items-center gap-2">
-      <UiButton variant="outline" @click="navigateTo('/dashboard')">
+    <div class="flex max-md:flex-col gap-2 justify-between">
+      <div class="flex gap-2 max-md:flex-col">
+        <UiButton class="w-full" variant="outline" @click="navigateTo('/dashboard')">
         Назад
       </UiButton>
 
-      <WidgetsCompanyResourcesManager :company-id="companyId" />
+      <WidgetsCompanyResourcesManager class="w-full" :company-id="companyId" />
+      </div>
 
-      <KitReportBorderButton class="ml-auto">
+      <KitReportBorderButton class="max-md:w-full">
         Сформировать отчет
       </KitReportBorderButton>
     </div>
