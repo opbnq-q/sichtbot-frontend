@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
-  css: ['./app/assets/css/main.css'],
+  css: ['./app/assets/css/main.css', 'vue-sonner/style.css'],
   pages: true,
 
   runtimeConfig: {
@@ -19,7 +19,12 @@ export default defineNuxtConfig({
     ]
   },
 
-  modules: ['shadcn-nuxt', '@vueuse/nuxt', '@nuxtjs/color-mode'],
+  modules: [
+    'shadcn-nuxt',
+    '@vueuse/nuxt',
+    '@nuxtjs/color-mode',
+    '@pinia/nuxt'
+  ],
   shadcn: {
     componentDir: `@/components/ui`
   },

@@ -8,7 +8,6 @@
 <script lang="ts" setup>
 import { AuthRepository } from '~/repositories/auth.repository';
 
-
 const isOtpMode = ref(false)
 
 const email = ref('')
