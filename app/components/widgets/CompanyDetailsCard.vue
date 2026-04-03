@@ -64,10 +64,13 @@
 
           <div class="space-y-1">
             <p class="text-sm font-medium">Описание</p>
-            <UiInput
-              :model-value="props.formDescription"
+            <textarea
+              :value="props.formDescription"
+              rows="4"
+              data-slot="textarea"
+              class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input w-full min-w-0 rounded-md border bg-transparent px-3 py-2 text-base shadow-xs transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
               :disabled="props.isSaving"
-              @update:model-value="(value) => emits('update:formDescription', String(value))"
+              @input="(event) => emits('update:formDescription', (event.target as HTMLTextAreaElement).value)"
             />
           </div>
 
