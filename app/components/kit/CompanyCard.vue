@@ -24,7 +24,7 @@
       </div>
       <UiCardAction class="mt-auto flex justify-end">
         <div class="flex flex-wrap justify-end gap-2">
-          <UiButton @click="navigateTo(`/dashboard/${props.id}`)">Открыть панель</UiButton>
+          <UiButton size="sm" @click="navigateTo(`/dashboard/${props.id}`)">Открыть панель</UiButton>
           <UiButton
             variant="secondary"
             size="sm"
