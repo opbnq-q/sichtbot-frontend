@@ -49,17 +49,17 @@
           <AlertDialogHeader>
             <AlertDialogTitle>Добавить компанию</AlertDialogTitle>
             <AlertDialogDescription>
-              Заполните title для новой карточки. Description — по желанию.
+              Заполните навание для новой карточки. Описание — по желанию.
             </AlertDialogDescription>
           </AlertDialogHeader>
 
           <form class="space-y-3" @submit.prevent="onCreateCompany">
             <div class="space-y-1">
-              <p class="text-sm font-medium">Title</p>
+              <p class="text-sm font-medium">Название</p>
               <UiInput v-model="form.title" placeholder="Название компании" required :disabled="isCreating" />
             </div>
             <div class="space-y-1">
-              <p class="text-sm font-medium">Description</p>
+              <p class="text-sm font-medium">Описание</p>
               <textarea
                 v-model="form.description"
                 rows="3"
