@@ -35,12 +35,12 @@ const emits = defineEmits<{
     </CardHeader>
     <CardContent>
       <form @submit.prevent="emits('submit')">
-        <FieldGroup>
+        <FieldGroup >
           <Field>
-            <FieldLabel for="otp">
+            <FieldLabel for="otp"  class="flex flex-col items-center">
               Код
             </FieldLabel>
-            <InputOTP id="otp" :maxlength="4" required v-model="otp">
+            <InputOTP id="otp" :maxlength="4" required v-model="otp"  class="flex flex-col items-center">
               <InputOTPGroup class="gap-2.5 *:data-[slot=input-otp-slot]:rounded-md *:data-[slot=input-otp-slot]:border">
                 <InputOTPSlot :index="0" />
                 <InputOTPSlot :index="1" />
@@ -48,9 +48,6 @@ const emits = defineEmits<{
                 <InputOTPSlot :index="3" />
               </InputOTPGroup>
             </InputOTP>
-            <FieldDescription>
-              Введите шестизначный код
-            </FieldDescription>
           </Field>
           <FieldGroup>
             <Button type="submit">

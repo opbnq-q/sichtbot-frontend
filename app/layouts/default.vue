@@ -45,7 +45,7 @@
 
           <Button
             v-if="$route.fullPath != '/auth'"
-            variant="outline"
+            variant="secondary"
             size="sm"
             class="hidden md:inline-flex"
             @click="onLogout"
