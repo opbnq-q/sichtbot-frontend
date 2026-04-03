@@ -1,8 +1,27 @@
-import type { ServerResponse } from '~/types/server-response.type'
+export type ResourceType = 'SITE' | 'VK' | 'TELEGRAM'
 
-type ResourceApiEntity = {
-  id?: number | string
-} & Record<string, unknown>
+export type CompanyOut = {
+  id: number
+  name: string
+  description: string
+}
+
+export type ResourceOut = {
+  id: number
+  name: string
+  url: string
+  type: ResourceType
+  company: CompanyOut
+}
+
+export type CreateResourceDto = {
+  name: string
+  url: string
+  type: ResourceType
+  companyId: number
+}
+
+export type UpdateResourceDto = Partial<CreateResourceDto>
 
 export class ResourcesRepository {
   constructor(
@@ -15,7 +34,7 @@ export class ResourcesRepository {
   }
 
   async getAll() {
-    return await this.fetch<ServerResponse<ResourceApiEntity[]>>('/resource', {
+    return await this.fetch<ResourceOut[]>('/resource', {
       method: 'GET',
       headers: {
         Authorization: this.getToken(),
@@ -24,7 +43,7 @@ export class ResourcesRepository {
   }
 
   async getById(id: string | number) {
-    return await this.fetch<ServerResponse<ResourceApiEntity>>(`/resource/${id}`, {
+    return await this.fetch<ResourceOut>(`/resource/${id}`, {
       method: 'GET',
       headers: {
         Authorization: this.getToken(),
@@ -32,8 +51,8 @@ export class ResourcesRepository {
     })
   }
 
-  async create(data: Record<string, unknown>) {
-    return await this.fetch<ServerResponse<ResourceApiEntity>>('/resource', {
+  async create(data: CreateResourceDto) {
+    return await this.fetch<ResourceOut>('/resource', {
       method: 'POST',
       headers: {
         Authorization: this.getToken(),
@@ -42,8 +61,8 @@ export class ResourcesRepository {
     })
   }
 
-  async update(id: string | number, data: Record<string, unknown>) {
-    return await this.fetch<ServerResponse<ResourceApiEntity>>(`/resource/${id}`, {
+  async update(id: string | number, data: UpdateResourceDto) {
+    return await this.fetch<ResourceOut>(`/resource/${id}`, {
       method: 'PATCH',
       headers: {
         Authorization: this.getToken(),
@@ -53,7 +72,7 @@ export class ResourcesRepository {
   }
 
   async delete(id: string | number) {
-    return await this.fetch<ServerResponse>(`/resource/${id}`, {
+    return await this.fetch<void>(`/resource/${id}`, {
       method: 'DELETE',
       headers: {
         Authorization: this.getToken(),
