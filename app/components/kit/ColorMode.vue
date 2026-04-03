@@ -2,6 +2,7 @@
 import { Icon } from '@iconify/vue'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { Sun, Moon, Cog } from 'lucide-vue-next'
 
 const colorMode = useColorMode()
 </script>
@@ -15,15 +16,15 @@ const colorMode = useColorMode()
         <span class="sr-only">Toggle theme</span>
       </Button>
     </DropdownMenuTrigger>
-    <DropdownMenuContent align="end">
-      <DropdownMenuItem @click="colorMode.preference = 'light'">
-        Light
+    <DropdownMenuContent class="w-10 min-w-0 p-1">
+      <DropdownMenuItem class="justify-center px-1" @click="colorMode.preference = 'light'">
+        <Sun />
       </DropdownMenuItem>
-      <DropdownMenuItem @click="colorMode.preference = 'dark'">
-        Dark
+      <DropdownMenuItem class="justify-center px-1" @click="colorMode.preference = 'dark'">
+        <Moon />
       </DropdownMenuItem>
-      <DropdownMenuItem @click="colorMode.preference = 'system'">
-        System
+      <DropdownMenuItem class="justify-center px-1" @click="colorMode.preference = 'system'">
+        <Cog />
       </DropdownMenuItem>
     </DropdownMenuContent>
   </DropdownMenu>
