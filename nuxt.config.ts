@@ -7,6 +7,12 @@ export default defineNuxtConfig({
   css: ['./app/assets/css/main.css'],
   pages: true,
 
+  runtimeConfig: {
+    public: {
+      baseUrl: ''
+    }
+  },
+
   vite: {
     plugins: [
       tailwindcss()
