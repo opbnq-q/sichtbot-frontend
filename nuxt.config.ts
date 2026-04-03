@@ -13,8 +13,11 @@ export default defineNuxtConfig({
     ]
   },
 
-  modules: ['shadcn-nuxt', '@vueuse/nuxt'],
+  modules: ['shadcn-nuxt', '@vueuse/nuxt', '@nuxtjs/color-mode'],
   shadcn: {
     componentDir: `@/components/ui`
+  },
+  colorMode: {
+    classSuffix: ''
   }
 })
