@@ -23,7 +23,8 @@ export default defineNuxtConfig({
     'shadcn-nuxt',
     '@vueuse/nuxt',
     '@nuxtjs/color-mode',
-    '@pinia/nuxt'
+    '@pinia/nuxt',
+    '@nuxt/image'
   ],
   shadcn: {
     componentDir: `@/components/ui`
