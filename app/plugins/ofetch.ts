@@ -12,7 +12,7 @@ export default defineNuxtPlugin((nuxtApp) => {
         },
         onResponseError({ request, response, options }) {
             toast.error("Ошибка", {
-                description: options.body as string
+                description: response.statusText
             })
             if (response.status == 401) nuxtApp.runWithContext(() => navigateTo('/auth'));
         }

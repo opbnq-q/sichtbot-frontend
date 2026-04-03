@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input"
 
 const props = defineProps<{
   class?: HTMLAttributes["class"]
+  pending?: boolean
 }>()
 
 const emits = defineEmits<{
@@ -33,9 +34,6 @@ const email = defineModel<string>('email', { required: true })
     <Card>
       <CardHeader>
         <CardTitle>Вход</CardTitle>
-        <CardDescription>
-          Введите Email
-        </CardDescription>
       </CardHeader>
       <CardContent>
         <form @submit.prevent="() => emits('login')">
@@ -53,7 +51,7 @@ const email = defineModel<string>('email', { required: true })
               />
             </Field>
             <Field>
-              <Button type="submit">
+              <Button type="submit" :disabled="props.pending">
                 Войти
               </Button>
             </Field>

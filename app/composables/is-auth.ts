@@ -1,3 +1,6 @@
 export const useIsAuth = () => {
-  return !!useCookie('token').value
+  return !!useCookie<string | null>('token', {
+    path: '/',
+    sameSite: 'lax',
+  }).value
 }
