@@ -31,7 +31,7 @@ export const useCompaniesStore = defineStore('companies', () => {
       }
 
       companies.value = response.data.map((company) => ({
-        id: company.id,
+        id: String(company.id),
         title: company.name,
         description: company.description,
         summary: company.description,
