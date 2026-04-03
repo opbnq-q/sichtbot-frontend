@@ -15,9 +15,9 @@
     </div>
 
     <WidgetsAuthFlowStepper current-step="report" />
-
     <WidgetsCompanyDetailsManager :route-id-label="routeIdLabel" />
   </div>
+  <KitHammerLoadingAnimation></KitHammerLoadingAnimation>
 </template>
 
 <script lang="ts" setup>

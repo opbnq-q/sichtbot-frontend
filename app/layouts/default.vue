@@ -4,7 +4,7 @@
       <div class="mx-auto flex w-full items-center justify-between gap-3">
         <div class="flex cursor-pointer gap-2 max-md:flex-col max-md:gap-0" @click="() => navigateTo('/')">
           
-          <h1 class="text-xl max-md:text-lg flex gap-1 items-center"><img class="-rotate-150 h-4" src="/assets/pngs/logo.png">SichtBot</h1>
+          <h1 class="text-xl max-md:text-lg flex gap-1 items-center"><img class="-rotate-150 h-4" src="/assets/svgs/logo.svg">SichtBot</h1>
           <p class="bg-linear-to-r from-blue-500 via-indigo-300 to-blue-500 bg-clip-text text-sm text-transparent">AI-помощник для бизнеса</p>
         </div>
 
