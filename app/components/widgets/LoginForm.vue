@@ -31,6 +31,8 @@ const email = defineModel<string>('email', { required: true })
 
 <template>
   <div :class="cn('flex flex-col gap-6', props.class)">
+    <WidgetsAuthFlowStepper current-step="input" />
+
     <Card>
       <CardHeader>
         <CardTitle>Вход</CardTitle>

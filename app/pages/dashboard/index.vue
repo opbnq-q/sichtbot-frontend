@@ -28,12 +28,15 @@
         ></KitCompanyCard>
       </div>
 
-      <UiCard v-if="hasFetched && !isLoading && companies.length === 0" class="mt-4 p-4">
-        <UiCardTitle>Компаний пока нет</UiCardTitle>
-        <UiCardDescription>
-          Добавьте первую компанию через кнопку внизу справа.
-        </UiCardDescription>
-      </UiCard>
+      <div v-if="hasFetched && !isLoading && companies.length === 0" class="mt-4 space-y-3">
+        <WidgetsAuthFlowStepper current-step="setup" />
+        <UiCard class="p-4">
+          <UiCardTitle>Компаний пока нет</UiCardTitle>
+          <UiCardDescription>
+            Вы на этапе настройки проекта: добавьте первую компанию через кнопку внизу справа.
+          </UiCardDescription>
+        </UiCard>
+      </div>
 
       <AlertDialog v-model:open="isCreateOpen">
         <AlertDialogTrigger as-child>

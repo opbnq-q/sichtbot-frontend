@@ -26,10 +26,13 @@
           <div class="h-4 w-4/5 rounded-md bg-muted/70" />
         </div>
 
-        <div v-else-if="!props.company" class="rounded-lg border border-border/60 bg-card/80 p-4">
-          <p class="text-sm text-muted-foreground">
-            Компания не найдена или недоступна.
-          </p>
+        <div v-else-if="!props.company" class="space-y-3">
+          <WidgetsAuthFlowStepper current-step="setup" />
+          <div class="rounded-lg border border-border/60 bg-card/80 p-4">
+            <p class="text-sm text-muted-foreground">
+              Компания не найдена или недоступна.
+            </p>
+          </div>
         </div>
 
         <div v-else-if="!props.isEditing" class="grid grid-cols-1 gap-3 md:grid-cols-2">

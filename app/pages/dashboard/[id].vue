@@ -12,6 +12,8 @@
       </KitReportBorderButton>
     </div>
 
+    <WidgetsAuthFlowStepper current-step="report" />
+
     <WidgetsCompanyDetailsManager :route-id-label="routeIdLabel" />
   </div>
 </template>
