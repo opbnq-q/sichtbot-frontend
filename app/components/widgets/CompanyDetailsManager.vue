@@ -39,7 +39,7 @@ const repository = new CompaniesRepository($ofetch)
 const company = ref<CompanyCardModel | null>(null)
 const isLoading = ref(false)
 const isSaving = ref(false)
-const isCollapsed = ref(false)
+const isCollapsed = ref(true)
 const isEditing = ref(false)
 
 const form = reactive({

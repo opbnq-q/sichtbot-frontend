@@ -40,6 +40,7 @@
           <UiButton
             class="fixed right-6 bottom-6 z-20 size-12 rounded-full text-2xl leading-none shadow-lg"
             aria-label="Открыть форму добавления компании"
+            v-combinepressed="[Keywords.Ctrl, Keywords.Enter]"
           >
             <Plus></Plus>
           </UiButton>
@@ -71,7 +72,13 @@
             </div>
             <AlertDialogFooter>
               <AlertDialogCancel type="button" @click="onCancelCreate" :disabled="isCreating">Отмена</AlertDialogCancel>
-              <UiButton type="submit" :disabled="isCreating">Сохранить</UiButton>
+              <UiButton
+                type="submit"
+                :disabled="isCreating"
+                v-combinepressed="[Keywords.Ctrl, Keywords.Enter]"
+              >
+                Сохранить
+              </UiButton>
             </AlertDialogFooter>
           </form>
         </AlertDialogContent>
@@ -136,6 +143,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { Plus } from 'lucide-vue-next'
+import { Keywords } from '~/types/combinepressed'
 
 onMounted(async () => {
   await fetchCompanies()

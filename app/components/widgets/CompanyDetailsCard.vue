@@ -78,7 +78,12 @@
             <UiButton type="button" variant="outline" :disabled="props.isSaving" @click="emits('cancelEdit')">
               Отмена
             </UiButton>
-            <UiButton type="submit" :disabled="props.isSaving" :class="{ 'animate-pulse': props.isSaving }">
+            <UiButton
+              type="submit"
+              :disabled="props.isSaving"
+              :class="{ 'animate-pulse': props.isSaving }"
+              v-combinepressed="[Keywords.Ctrl, Keywords.Enter]"
+            >
               {{ props.isSaving ? 'Сохраняем...' : 'Сохранить' }}
             </UiButton>
           </div>
@@ -89,6 +94,8 @@
 </template>
 
 <script lang="ts" setup>
+import { Keywords } from '~/types/combinepressed'
+
 export type CompanyCardModel = {
   id: string | number
   name: string

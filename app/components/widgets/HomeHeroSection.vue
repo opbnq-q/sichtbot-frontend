@@ -1,8 +1,12 @@
+<script setup lang="ts">
+import { Keywords } from '~/types/combinepressed'
+</script>
+
 <template>
   <section class="relative isolate overflow-hidden rounded-2xl border border-border/70 bg-card/70 px-6 py-14 shadow-sm backdrop-blur md:px-10 md:py-20">
     <div
       aria-hidden="true"
-      class="pointer-events-none absolute -top-20 left-1/2 z-0 h-64 w-[48rem] -translate-x-1/2 rounded-full bg-linear-to-r from-primary/25 via-accent/20 to-primary/15 blur-3xl"
+      class="pointer-events-none absolute -top-20 left-1/2 z-0 h-64 w-3xl -translate-x-1/2 rounded-full bg-linear-to-r from-primary/25 via-accent/20 to-primary/15 blur-3xl"
     />
     <div aria-hidden="true" class="hero-grain pointer-events-none absolute inset-0 z-0 opacity-20" />
 
@@ -27,6 +31,7 @@
           id="demo-btn"
           size="lg"
           class="cursor-interactive group transition-all duration-300 active:scale-95"
+          v-combinepressed="[Keywords.Ctrl, Keywords.Enter]"
           @click="navigateTo('/dashboard')"
         >
           Открыть дашборд

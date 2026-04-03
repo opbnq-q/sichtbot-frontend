@@ -1,5 +1,13 @@
+<script setup lang="ts">
+import { Keywords } from '~/types/combinepressed'
+</script>
+
 <template>
-  <UiButton variant="outline" class="report-rainbow-btn font-semibold">
+  <UiButton
+    variant="outline"
+    class="report-rainbow-btn font-semibold"
+    v-combinepressed="[Keywords.Ctrl, Keywords.Enter]"
+  >
     <slot>Сформировать отчет</slot>
   </UiButton>
 </template>

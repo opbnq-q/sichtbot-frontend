@@ -44,6 +44,7 @@
 
           <UiButton
             class="min-w-24"
+            v-combinepressed="[Keywords.Ctrl, Keywords.Enter]"
             :disabled="props.isCreatingResource"
             :class="{ 'animate-pulse': props.isCreatingResource }"
             @click="emits('create')"
@@ -122,6 +123,7 @@ import {
 } from '@/components/ui/dialog'
 import { Plus, Save, Trash2 } from 'lucide-vue-next'
 import { EResourceType } from '~/repositories/resources.repository'
+import { Keywords } from '~/types/combinepressed'
 
 export type ResourceRow = {
   id: number
