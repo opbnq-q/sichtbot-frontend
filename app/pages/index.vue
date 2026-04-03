@@ -1,6 +1,5 @@
 <template>
     <div 
-        ref="rootContainerRef"
         class="relative isolate overflow-hidden min-h-screen"
         :class="{ 'hide-native-cursor': !isMobile }"
     >
@@ -8,7 +7,7 @@
             v-if="!isMobile"
             ref="autoCursorRef"
             aria-hidden="true"
-            class="pointer-events-none absolute left-0 top-0 z-[9999] h-7 w-7 opacity-0 transition-opacity duration-500"
+            class="pointer-events-none fixed left-0 top-0 z-[9999] h-7 w-7 opacity-0 transition-opacity duration-500"
             style="transition-property: transform, opacity; transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);"
         >
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full filter drop-shadow-md">
@@ -24,93 +23,12 @@
 
         <div
             aria-hidden="true"
-            class="interactive-bottom-bg pointer-events-none absolute inset-x-0 -bottom-10 z-0 h-72"
+            class="interactive-bottom-bg pointer-events-none fixed inset-x-0 -bottom-10 z-0 h-72"
         />
 
-        <div class="relative z-10 space-y-6 container mx-auto px-4 py-6 md:py-10">
-            <section class="relative isolate overflow-hidden rounded-2xl border border-border/70 bg-card/70 px-6 py-14 shadow-sm backdrop-blur md:px-10 md:py-20">
-                <div
-                    aria-hidden="true"
-                    class="pointer-events-none absolute -top-20 left-1/2 z-0 h-64 w-[48rem] -translate-x-1/2 rounded-full bg-linear-to-r from-primary/25 via-accent/20 to-primary/15 blur-3xl"
-                />
-                <div aria-hidden="true" class="hero-grain pointer-events-none absolute inset-0 z-0 opacity-20" />
-
-                <div class="relative z-10 mx-auto flex max-w-4xl flex-col items-center text-center">
-                    <p class="mb-4 rounded-full border border-border/60 bg-background/55 px-4 py-1 text-xs font-medium text-muted-foreground">
-                        AI-помощник для бизнеса
-                    </p>
-
-                    <h1 class="text-3xl font-semibold tracking-tight text-foreground sm:text-5xl">
-                        Управляйте компанией быстрее
-                        <span class="bg-linear-to-r from-blue-500 via-indigo-300 to-blue-500 bg-clip-text text-transparent">
-                            с умной аналитикой
-                        </span>
-                    </h1>
-
-                    <p class="mt-4 max-w-2xl text-sm text-muted-foreground sm:text-base">
-                        SichtBot помогает вести интернет-деятельность: собирает ключевые метрики, подсказывает точки роста и поддерживает принятие решений на основе данных.
-                    </p>
-
-                    <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
-                        <UiButton 
-                            id="demo-btn"
-                            size="lg" 
-                            class="cursor-interactive group transition-all duration-300 active:scale-95"
-                            @click="navigateTo('/dashboard')"
-                        >
-                            Открыть дашборд
-                        </UiButton>
-                    </div>
-                </div>
-            </section>
-
-            <section class="rounded-2xl border border-border/70 bg-card/65 p-6 shadow-sm backdrop-blur md:p-8">
-                <div class="mx-auto max-w-5xl space-y-6">
-                    <div class="space-y-2">
-                        <h2 class="text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
-                            Полная картина интернет-деятельности в одном месте
-                        </h2>
-                        <p class="text-sm text-muted-foreground md:text-base">
-                            SichtBot объединяет данные из разных каналов, анализирует их с помощью AI и показывает понятные рекомендации для роста бизнеса.
-                        </p>
-                    </div>
-
-                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                        <UiCard 
-                            class="cursor-interactive cursor-pointer relative z-20 border-border/60 bg-card/80 p-4 transition-all duration-300 hover:border-primary/50 hover:bg-card"
-                            @click="openDialog('AI-анализ', 'Детализированный анализ включает предиктивную аналитику, выявление неочевидных паттернов поведения пользователей и автоматическое формирование отчетов об аномалиях в метриках в режиме реального времени.')"
-                        >
-                            <UiCardTitle>AI-анализ</UiCardTitle>
-                            <UiCardDescription>
-                                Модель выявляет тренды, аномалии и точки роста, помогает быстро понять, где проседают показатели и что даст наибольший эффект.
-                            </UiCardDescription>
-                        </UiCard>
-
-                        <UiCard 
-                            class="cursor-interactive cursor-pointer relative z-20 border-border/60 bg-card/80 p-4 transition-all duration-300 hover:border-primary/50 hover:bg-card"
-                            @click="openDialog('SEO-анализ', 'Инструмент непрерывно мониторит позиции сайта по ключевым запросам, анализирует семантику конкурентов, проверяет техническое состояние ресурса и генерирует готовые к внедрению рекомендации по On-Page SEO.')"
-                        >
-                            <UiCardTitle>SEO-анализ</UiCardTitle>
-                            <UiCardDescription>
-                                SEO — это поисковая оптимизация сайта. SichtBot подсказывает, как улучшить видимость в поиске и увеличить органический трафик.
-                            </UiCardDescription>
-                        </UiCard>
-
-                        <UiCard 
-                            class="cursor-interactive cursor-pointer relative z-20 border-border/60 bg-card/80 p-4 md:col-span-2 transition-all duration-300 hover:border-primary/50 hover:bg-card"
-                            @click="openDialog('Сбор данных из разных провайдеров', 'Единый хаб для всех интеграций: безопасное управление API-ключами, автоматическая синхронизация данных каждые 15 минут, возможность создания кросс-канальных отчетов (например, сопоставление затрат в Яндекс.Директ с продажами из Telegram-бота).')"
-                        >
-                            <UiCardTitle>Сбор данных из разных провайдеров</UiCardTitle>
-                            <UiCardDescription>
-                                Платформа собирает и синхронизирует данные из Telegram, Яндекс, вашего сайта, ВК и других источников, чтобы вы работали с единой аналитикой.
-                            </UiCardDescription>
-                            <div class="mt-3 flex flex-wrap gap-2">
-                                <span v-for="tag in ['Telegram', 'Яндекс', 'Сайт', 'ВК', 'Другие провайдеры']" :key="tag" class="rounded-md border border-border/60 bg-background/60 px-2 py-1 text-xs text-muted-foreground">{{tag}}</span>
-                            </div>
-                        </UiCard>
-                    </div>
-                </div>
-            </section>
+        <div class="relative z-10 space-y-6 container mx-auto py-6 md:py-10">
+            <WidgetsHomeHeroSection />
+            <WidgetsHomeAdvantagesSection @open-dialog="openDialog" />
         </div>
 
         <UiDialog v-model:open="isDialogOpen">
@@ -136,7 +54,6 @@ definePageMeta({
 })
 
 const isMobile = ref(true)
-const rootContainerRef = ref<HTMLElement | null>(null)
 const autoCursorRef = ref<HTMLElement | null>(null)
 const userFollowerRef = ref<HTMLElement | null>(null)
 
@@ -152,16 +69,6 @@ let autoLoopTimer: ReturnType<typeof setTimeout> | null = null
 let currentAutoStep = 0
 let autoCursorActiveTarget: HTMLElement | null = null
 
-const getRelativeCoords = (el: HTMLElement, offsetX = 0, offsetY = 0) => {
-    if (!rootContainerRef.value) return { x: 0, y: 0 }
-    const targetRect = el.getBoundingClientRect()
-    const containerRect = rootContainerRef.value.getBoundingClientRect()
-    return {
-        x: targetRect.left - containerRect.left + offsetX,
-        y: targetRect.top - containerRect.top + offsetY
-    }
-}
-
 const moveAutoCursor = (x: number, y: number, duration: number = 800) => {
     if (!autoCursorRef.value) return
     autoCursorRef.value.style.transitionDuration = `${duration}ms`
@@ -176,7 +83,7 @@ const clearHoverEffects = () => {
 }
 
 const runAutoSequence = () => {
-    if (isMobile.value || !autoCursorRef.value || !rootContainerRef.value || isDialogOpen.value) return
+    if (isMobile.value || !autoCursorRef.value || isDialogOpen.value) return
 
     clearHoverEffects()
     const buttonEl = document.getElementById('demo-btn')
@@ -184,8 +91,7 @@ const runAutoSequence = () => {
 
     if (currentAutoStep === 0) {
         autoCursorRef.value.classList.add('opacity-0')
-        const containerRect = rootContainerRef.value.getBoundingClientRect()
-        moveAutoCursor(containerRect.width + 100, containerRect.height / 2, 0)
+        moveAutoCursor(window.innerWidth + 100, window.innerHeight / 2, 0)
         
         autoLoopTimer = setTimeout(() => {
             if (isDialogOpen.value) return
@@ -201,9 +107,12 @@ const runAutoSequence = () => {
         if (targets.length) {
             const target = targets[Math.floor(Math.random() * targets.length)] as HTMLElement
             const rect = target.getBoundingClientRect()
-            const coords = getRelativeCoords(target, rect.width / 3, rect.height / 3)
             
-            moveAutoCursor(coords.x, coords.y, 700)
+            moveAutoCursor(
+                rect.left + rect.width / 3 + window.scrollX,
+                rect.top + rect.height / 3 + window.scrollY,
+                700
+            )
 
             autoLoopTimer = setTimeout(() => {
                 if (isDialogOpen.value) return
@@ -224,9 +133,12 @@ const runAutoSequence = () => {
 
     if (currentAutoStep === 2) {
         const rect = buttonEl.getBoundingClientRect()
-        const coords = getRelativeCoords(buttonEl, rect.width / 2 - 10, rect.height / 2 - 5)
         
-        moveAutoCursor(coords.x, coords.y, 1000)
+        moveAutoCursor(
+            rect.left + rect.width / 2 - 10 + window.scrollX, 
+            rect.top + rect.height / 2 - 5 + window.scrollY,
+            1000
+        )
 
         autoLoopTimer = setTimeout(() => {
             if (isDialogOpen.value) return
@@ -247,9 +159,11 @@ const runAutoSequence = () => {
         autoLoopTimer = setTimeout(() => {
             buttonEl.classList.remove('scale-95')
             
-            if (!rootContainerRef.value) return
-            const containerRect = rootContainerRef.value.getBoundingClientRect()
-            moveAutoCursor(containerRect.width * 0.9, containerRect.height * 0.9, 900)
+            moveAutoCursor(
+                window.innerWidth * 0.9 + window.scrollX,
+                window.innerHeight * 0.9 + window.scrollY,
+                900
+            )
 
             autoLoopTimer = setTimeout(() => {
                 autoCursorRef.value?.classList.add('opacity-0')
