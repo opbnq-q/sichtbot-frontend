@@ -29,7 +29,8 @@ const onSubmit = async () => {
   try {
     const response = await repository.confirmOtp(email.value, otp.value)
     if (response.status === 'success') {
-      localStorage.setItem('token', response.data.token)
+      const cookie = useCookie('token')
+      cookie.value = response.data.token
       window.location.replace('/')
     }
   } catch(e) {

@@ -30,5 +30,10 @@ export default defineNuxtConfig({
   },
   colorMode: {
     classSuffix: ''
+  },
+  routeRules: {
+    '/auth': {
+      ssr: false
+    }
   }
 })
