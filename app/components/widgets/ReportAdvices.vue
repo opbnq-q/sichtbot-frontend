@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue";
-import type { ReportOutDto, ReportAdvicesDto } from "~/repositories/reports.repository";
+import type { ReportAdvicesDto, ReportOutDto } from "~/repositories/reports.repository";
+import { ChevronDown } from "lucide-vue-next";
 import { marked } from "marked";
-import { cn } from "@/lib/utils";
 import {
     Collapsible,
     CollapsibleContent,
@@ -14,11 +14,15 @@ const props = defineProps<{
     class?: HTMLAttributes["class"];
 }>();
 
-const adviceSectionOpenState = ref<Record<string, boolean>>({
+const defaultOpenState = () => ({
     analysis: true,
     mistakes: true,
     recommendations: true,
 });
+
+onMounted(() => console.log(props.report.advices))
+
+const adviceSectionOpenState = ref<Record<string, boolean>>(defaultOpenState());
 
 const isAdviceContentVisible = (value: string | null | undefined) => {
     if (!value || !value.trim()) {
@@ -68,14 +72,22 @@ const setAdviceSectionOpen = (sectionId: string, isOpen: boolean) => {
 };
 
 const renderMarkdown = (value: string | null | undefined) => {
-    if (!value) return "";
-    try {
-        const raw = marked.parse(value);
-        return typeof raw === "string" ? raw : "";
-    } catch {
-        return value;
+    if (!value || !value.trim()) {
+        return "";
     }
+
+    return marked.parse(value, {
+        breaks: true,
+        gfm: true,
+    }) as string;
 };
+
+watch(
+    () => props.report.id,
+    () => {
+        adviceSectionOpenState.value = defaultOpenState();
+    },
+);
 </script>
 
 <template>
@@ -112,12 +124,12 @@ const renderMarkdown = (value: string | null | undefined) => {
                                     type="button"
                                     class="size-7"
                                 >
-                                    <div
-                                        class="size-4 transition-transform duration-200"
-                                        :class="{ 'rotate-180': isAdviceSectionOpen(section.id) }"
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                                    </div>
+                                    <ChevronDown
+                                        class="size-4 transition-transform"
+                                        :class="{
+                                            'rotate-180': isAdviceSectionOpen(section.id),
+                                        }"
+                                    />
                                 </UiButton>
                             </CollapsibleTrigger>
                         </div>
@@ -139,7 +151,7 @@ const renderMarkdown = (value: string | null | undefined) => {
         </UiCard>
 
         <div
-            v-else-if="!report.advices || (adviceSectionsForSelectedReport.length === 0 && report.reportType !== 'metrics-only')"
+            v-else
             class="rounded-lg border border-border/60 bg-card p-4"
         >
             <p class="text-sm text-muted-foreground">
@@ -148,3 +160,25 @@ const renderMarkdown = (value: string | null | undefined) => {
         </div>
     </div>
 </template>
+
+<style scoped>
+.report-markdown :deep(p) {
+    margin-top: 0.35rem;
+    line-height: 1.5;
+}
+
+.report-markdown :deep(ul),
+.report-markdown :deep(ol) {
+    margin-top: 0.35rem;
+    margin-left: 1rem;
+}
+
+.report-markdown :deep(li) {
+    margin-top: 0.15rem;
+}
+
+.report-markdown :deep(strong) {
+    color: hsl(var(--foreground));
+    font-weight: 600;
+}
+</style>

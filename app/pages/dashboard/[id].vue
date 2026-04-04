@@ -28,430 +28,33 @@
 
         <WidgetsCompanyDetailsManager :route-id-label="routeIdLabel" />
 
-        <UiCard class="relative overflow-hidden">
-            <div
-                v-if="reportsStore.isGenerating"
-                class="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-background/70 backdrop-blur-[1px]"
-            >
-                <KitHammerLoadingAnimation />
-            </div>
+        <WidgetsReportViewerCard
+            :report="selectedReport"
+            :is-generating="reportsStore.isGenerating"
+            :is-loading="reportsStore.isLoading && !reportsStore.hasFetched"
+            :company-resources="companyResources"
+            @open-export="isExportDialogOpen = true"
+        />
 
-            <UiCardHeader class="px-4 pt-4 pb-3 md:px-6">
-                <div class="flex flex-wrap items-start justify-between gap-3">
-                    <div class="space-y-1">
-                        <div class="flex items-center gap-2">
-                            <UiCardTitle>Анализ ресурсов</UiCardTitle>
-                            <Badge variant="secondary">Полный</Badge>
-                        </div>
-                        <UiCardDescription
-                            v-if="selectedReport"
-                            class="text-muted-foreground"
-                        >
-                            {{ formatCreatedAt(selectedReport.createdAt) }}
-                        </UiCardDescription>
-                    </div>
-
-                    <UiButton
-                        variant="outline"
-                        size="sm"
-                        class="ml-auto"
-                        :disabled="!selectedReport"
-                        @click="isExportDialogOpen = true"
-                    >
-                        Экспорт
-                    </UiButton>
-                </div>
-            </UiCardHeader>
-
-            <UiSeparator />
-
-            <UiCardContent class="px-4 py-4 md:px-6">
-                <div
-                    v-if="reportsStore.isLoading && !reportsStore.hasFetched"
-                    class="space-y-3 animate-pulse"
-                >
-                    <div class="h-5 w-1/3 rounded-md bg-muted" />
-                    <div class="h-4 w-full rounded-md bg-muted/80" />
-                    <div class="h-4 w-4/5 rounded-md bg-muted/70" />
-                </div>
-
-                <Transition name="report-fade" mode="out-in">
-                    <div
-                        v-if="!selectedReport"
-                        key="empty"
-                        class="rounded-lg border border-border/60 bg-card p-4"
-                    >
-                        <p class="text-sm text-muted-foreground">
-                            Нет выбранного отчета. Сформируй новый или выбери из
-                            списка ниже.
-                        </p>
-                    </div>
-
-                    <div v-else :key="selectedReport.id" class="space-y-4">
-                        <UiCard
-                            v-if="selectedReport.advices"
-                            class="border-border/60"
-                        >
-                            <UiCardHeader class="px-4 py-3">
-                                <UiCardTitle class="text-sm">Результаты и рекомендации</UiCardTitle>
-                            </UiCardHeader>
-
-                            <UiSeparator />
-
-                            <UiCardContent
-                                v-if="adviceSectionsForSelectedReport.length > 0"
-                                class="px-4 py-0"
-                            >
-                                <section
-                                    v-for="(section, index) in adviceSectionsForSelectedReport"
-                                    :key="section.id"
-                                    class="py-3"
-                                >
-                                    <Collapsible
-                                        :open="isAdviceSectionOpen(section.id)"
-                                        @update:open="(value) => setAdviceSectionOpen(section.id, value)"
-                                    >
-                                        <div class="flex items-center justify-between gap-2">
-                                            <p class="text-xs text-muted-foreground">
-                                                {{ section.title }}
-                                            </p>
-
-                                            <CollapsibleTrigger as-child>
-                                                <UiButton
-                                                    variant="ghost"
-                                                    size="icon-sm"
-                                                    type="button"
-                                                    class="size-7"
-                                                >
-                                                    <ChevronDown
-                                                        class="size-4 transition-transform"
-                                                        :class="{
-                                                            'rotate-180': isAdviceSectionOpen(section.id),
-                                                        }"
-                                                    />
-                                                </UiButton>
-                                            </CollapsibleTrigger>
-                                        </div>
-
-                                        <CollapsibleContent>
-                                            <div
-                                                class="mt-2 text-base text-foreground report-markdown"
-                                                v-html="renderMarkdown(section.content)"
-                                            />
-                                        </CollapsibleContent>
-                                    </Collapsible>
-
-                                    <UiSeparator
-                                        v-if="index < adviceSectionsForSelectedReport.length - 1"
-                                        class="mt-3"
-                                    />
-                                </section>
-                            </UiCardContent>
-                        </UiCard>
-
-                    <div
-                        v-else-if="!selectedReport.advices"
-                        class="rounded-lg border border-border/60 bg-card p-4"
-                    >
-                        <p class="text-sm text-muted-foreground">
-                            Для этого отчета нет текстовых рекомендаций.
-                        </p>
-                    </div>
-
-                    <div
-                        v-if="
-                            selectedReport.resources &&
-                            selectedReport.resources.length > 0
-                        "
-                        class="space-y-3"
-                    >
-                        <div
-                            v-for="resource in selectedReport.resources"
-                            :key="resource.resourceType"
-                            class="rounded-md border border-border/50 bg-background/40 p-3"
-                        >
-                            <div
-                                class="flex flex-wrap items-center gap-2 min-w-0"
-                            >
-                                <component
-                                    :is="
-                                        resourceTypeIcon(resource.resourceType)
-                                    "
-                                    class="size-4 shrink-0 text-muted-foreground"
-                                />
-
-                                <p
-                                    class="truncate text-sm font-medium text-foreground"
-                                >
-                                    {{ resourceMeta(resource).name }}
-                                </p>
-
-                                <a
-                                    v-if="resourceMeta(resource).url"
-                                    class="truncate text-sm text-muted-foreground underline-offset-4 hover:underline"
-                                    :href="resourceMeta(resource).url"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                >
-                                    {{ resourceMeta(resource).url }}
-                                </a>
-                            </div>
-
-                            <div
-                                class="mt-2 grid grid-cols-1 gap-2 md:grid-cols-2"
-                            >
-                                <div
-                                    v-for="metric in resource.metrics"
-                                    :key="metric.id"
-                                    class="flex h-full flex-col rounded-md border border-border/60 bg-card p-3"
-                                >
-                                    <div
-                                        class="flex items-start justify-between gap-2"
-                                    >
-                                        <p class="text-sm font-medium leading-snug text-foreground">
-                                            {{ metric.title }}
-                                        </p>
-                                        <p
-                                            class="shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium"
-                                            :class="metricBadgeClass(metricPercent(metric))"
-                                        >
-                                            {{ metricPercent(metric) }}%
-                                        </p>
-                                    </div>
-
-                                    <div
-                                        class="mt-2 flex items-center justify-between gap-3 text-xs"
-                                    >
-                                        <div class="min-w-0">
-                                            <p class="text-[11px] text-muted-foreground">Значение</p>
-                                            <p class="truncate font-medium text-foreground">
-                                                {{
-                                                    formatMetricValue(
-                                                        metric.currentValue,
-                                                        metric.postfix,
-                                                    )
-                                                }}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div
-                                        class="relative mt-2 h-2.5 w-full overflow-hidden rounded-full bg-muted"
-                                    >
-                                        <div
-                                            class="h-full rounded-full metric-bar transition-[width] duration-500 ease-out"
-                                            :class="metricFillClass(metricPercent(metric))"
-                                            :style="{
-                                                width: metricBarWidth(metric),
-                                            }"
-                                        />
-                                    </div>
-
-                                    <div
-                                        class="mt-1.5 grid grid-cols-5 text-[10px] text-muted-foreground"
-                                    >
-                                        <span
-                                            v-for="tick in metricScaleTickValues(metric)"
-                                            :key="`${metric.id}-${tick}`"
-                                            class="text-center first:text-left last:text-right"
-                                        >
-                                            {{ formatMetricAxisValue(tick) }}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div
-                        v-else-if="selectedReport.reportType === 'metrics-only'"
-                        class="rounded-lg border border-border/60 bg-card/80 p-4"
-                    >
-                        <p class="text-sm text-muted-foreground">
-                            Для этого отчета метрики недоступны.
-                        </p>
-                    </div>
-
-                    <div
-                        v-else
-                        class="rounded-lg border border-border/60 bg-card/80 p-4"
-                    >
-                        <p class="text-sm text-muted-foreground">
-                            Для этого отчета нет данных по ресурсам.
-                        </p>
-                    </div>
-                    </div>
-                </Transition>
-            </UiCardContent>
-        </UiCard>
-
-        <UiCard class="overflow-hidden border-border/60">
-            <UiCardHeader class="px-4 py-2 md:px-5">
-                <div class="flex flex-wrap items-start justify-between gap-3">
-                    <div class="space-y-1">
-                        <div class="flex items-center gap-2">
-                            <UiCardTitle>Отчеты</UiCardTitle>
-                            <Badge variant="secondary">
-                                {{ reportsStore.sortedReports.length }}
-                            </Badge>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center gap-1 rounded-lg border border-border/50 bg-muted/40 p-1">
-                    <UiButton
-                        variant="outline"
-                        size="icon-sm"
-                        class="bg-background/80"
-                        aria-label="Влево"
-                        :disabled="isPrevDisabled"
-                        @click="scrollReports('left')"
-                    >
-                        <ChevronLeft class="size-4" />
-                    </UiButton>
-
-                    <UiButton
-                        variant="outline"
-                        size="icon-sm"
-                        class="bg-background/80"
-                        aria-label="Вправо"
-                        :disabled="isNextDisabled"
-                        @click="scrollReports('right')"
-                    >
-                        <ChevronRight class="size-4" />
-                    </UiButton>
-                </div>
-                </div>
-            </UiCardHeader>
-
-            <UiCardContent class="px-4 py-2 md:px-5">
-
-            <div
-                v-if="reportsStore.sortedReports.length === 0"
-                class="rounded-lg border border-border/60 bg-card/80 p-4"
-            >
-                <p class="text-sm text-muted-foreground">Пока нет отчетов.</p>
-            </div>
-
-            <div v-else>
-                <div
-                    ref="reportsSliderRef"
-                    class="reports-slider flex gap-1.5 overflow-x-auto pb-1"
-                >
-                    <UiButton
-                        v-for="(report, index) in reportButtons"
-                        :key="report.id"
-                        :data-report-id="report.id"
-                        variant="outline"
-                        size="sm"
-                        class="h-auto min-w-38 shrink-0 justify-start rounded-lg px-3 py-2 report-chip"
-                        :class="{
-                            'border-primary text-primary report-chip--active':
-                                reportsStore.selectedReportId === report.id,
-                        }"
-                        @click="selectReportWithAnimation(report.id)"
-                    >
-                        <div class="flex min-w-0 flex-col items-start gap-0.5 text-left leading-tight">
-                            <span class="font-medium">Отчет №{{ reportNumber(index) }}</span>
-                            <span class="text-xs text-muted-foreground">
-                                {{ formatShortDate(report.createdAt) }}
-                            </span>
-                        </div>
-                    </UiButton>
-                </div>
-
-                <div class="mt-1 h-1.5 w-full rounded-full bg-muted/60">
-                    <div
-                        class="h-full rounded-full bg-primary transition-[width,transform] duration-300 ease-out"
-                        :style="{
-                            width: `${sliderProgress}%`,
-                        }"
-                    />
-                </div>
-            </div>
-            </UiCardContent>
-        </UiCard>
+        <WidgetsReportHistoryCard
+            :reports="reportsStore.sortedReports"
+            :selected-report-id="reportsStore.selectedReportId"
+            @select="selectReportWithAnimation"
+        />
     </div>
 
-    <Dialog v-model:open="isExportDialogOpen">
-        <DialogContent class="sm:max-w-md">
-            <DialogHeader>
-                <DialogTitle>Экспорт отчета</DialogTitle>
-                <DialogDescription>
-                    Выбери формат файла для скачивания.
-                </DialogDescription>
-            </DialogHeader>
-
-            <div class="grid grid-cols-2 gap-2">
-                <UiButton
-                    variant="secondary"
-                    :disabled="!selectedReport"
-                    @click="downloadReport('json')"
-                >
-                    JSON
-                </UiButton>
-                <UiButton
-                    variant="secondary"
-                    :disabled="!selectedReport"
-                    @click="downloadReport('xml')"
-                >
-                    XML
-                </UiButton>
-                <UiButton
-                    variant="secondary"
-                    :disabled="!selectedReport"
-                    @click="downloadReport('yaml')"
-                >
-                    YAML
-                </UiButton>
-                <UiButton
-                    variant="secondary"
-                    :disabled="!selectedReport"
-                    @click="downloadReport('xlsx')"
-                >
-                    XLSX
-                </UiButton>
-            </div>
-        </DialogContent>
-    </Dialog>
-
+    <WidgetsReportExportDialog
+        v-model:open="isExportDialogOpen"
+        :report="selectedReport"
+    />
 </template>
 
 <script lang="ts" setup>
-import type { ReportMetricDto } from "~/repositories/reports.repository";
-import type { ReportAdvicesDto } from "~/repositories/reports.repository";
-import type { ReportOutDto } from "~/repositories/reports.repository";
-import {
-    type ResourceOut,
-    EResourceType,
-} from "~/repositories/resources.repository";
+import type { ResourceOut } from "~/repositories/resources.repository";
 import type { CompanyOut } from "~/repositories/resources.repository";
 import { useReportsStore } from "~/stores/reports.store";
 import type { ServerResponse } from "~/types/server-response.type";
-import {
-    ChevronDown,
-    ChevronLeft,
-    ChevronRight,
-    Globe,
-    MessageCircle,
-    Send,
-} from "lucide-vue-next";
 import { toast } from "vue-sonner";
-import { marked } from "marked";
-import { Badge } from "@/components/ui/badge";
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog";
-import {
-    Collapsible,
-    CollapsibleContent,
-    CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import * as YAML from "yaml";
-import * as XLSX from "xlsx";
 
 const route = useRoute();
 
@@ -466,15 +69,11 @@ const routeIdLabel = computed(() => {
 const companyId = computed(() => Number(route.params.id));
 
 const reportsStore = useReportsStore();
-const reportButtons = computed(() => reportsStore.sortedReports.slice().reverse());
-const reportNumber = (index: number) => reportButtons.value.length - index;
-
 const selectedReport = computed(() => reportsStore.selectedReport);
 const isExportDialogOpen = ref(false);
 
 const { $ofetch } = useNuxtApp();
 const companyResources = ref<ResourceOut[]>([]);
-
 const companyDescription = ref("");
 
 const getAuthHeader = () => {
@@ -529,132 +128,25 @@ const fetchCompanyResources = async () => {
     }
 
     try {
-        const response = await $ofetch<ResourceOut[] | ServerResponse<ResourceOut[]>>(
-            "/resource",
-            {
-                method: "GET",
-                headers: getAuthHeader(),
-                cache: "no-store",
-                query: {
-                    _t: Date.now(),
-                },
+        const response = await $ofetch<
+            ResourceOut[] | ServerResponse<ResourceOut[]>
+        >("/resource", {
+            method: "GET",
+            headers: getAuthHeader(),
+            cache: "no-store",
+            query: {
+                _t: Date.now(),
             },
-        );
+        });
 
         const all = unwrapServerResponse(response) ?? [];
 
         companyResources.value = all.filter(
-            (r) => r.company.id === companyId.value,
+            (resource) => resource.company.id === companyId.value,
         );
     } catch {
         companyResources.value = [];
     }
-};
-
-const normalizeResourceType = (type: unknown): EResourceType | null => {
-    if (typeof type !== "string") {
-        return null;
-    }
-
-    const normalized = type.trim().toUpperCase();
-
-    if (normalized === EResourceType.SITE) return EResourceType.SITE;
-    if (normalized === EResourceType.VK) return EResourceType.VK;
-    if (normalized === EResourceType.TELEGRAM) return EResourceType.TELEGRAM;
-
-    return null;
-};
-
-const normalizeUrl = (url: unknown): string => {
-    if (typeof url !== "string") {
-        return "";
-    }
-
-    const trimmed = url.trim();
-
-    if (!trimmed) {
-        return "";
-    }
-
-    if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
-        return trimmed;
-    }
-
-    return `https://${trimmed}`;
-};
-
-const resourceMeta = (resource: {
-    resourceType: unknown;
-    name?: string;
-    url?: string;
-}) => {
-    const type = normalizeResourceType(resource.resourceType);
-
-    const reportName =
-        typeof resource.name === "string" ? resource.name.trim() : "";
-    const reportUrl = normalizeUrl(resource.url);
-
-    if (reportName || reportUrl) {
-        return {
-            name: reportName || "Ресурс",
-            url: reportUrl,
-            type,
-        };
-    }
-
-    const found = type
-        ? companyResources.value.find((r) => r.type === type)
-        : undefined;
-
-    const fallbackName =
-        type === EResourceType.SITE
-            ? "Сайт"
-            : type === EResourceType.TELEGRAM
-              ? "Telegram"
-              : type === EResourceType.VK
-                ? "VK"
-                : "Ресурс";
-
-    return {
-        name: found?.name ?? fallbackName,
-        url: normalizeUrl(found?.url),
-        type,
-    };
-};
-
-const reportsSliderRef = ref<HTMLElement | null>(null);
-const sliderProgress = ref(0);
-const isPrevDisabled = ref(true);
-const isNextDisabled = ref(false);
-
-const updateSliderState = () => {
-    const el = reportsSliderRef.value;
-    if (!el) {
-        sliderProgress.value = 0;
-        isPrevDisabled.value = true;
-        isNextDisabled.value = true;
-        return;
-    }
-
-    const max = Math.max(0, el.scrollWidth - el.clientWidth);
-    const left = el.scrollLeft;
-
-    sliderProgress.value = max === 0 ? 100 : Math.round((left / max) * 100);
-    isPrevDisabled.value = left <= 2;
-    isNextDisabled.value = left >= max - 2;
-};
-
-const scrollReports = (dir: "left" | "right") => {
-    const el = reportsSliderRef.value;
-    if (!el) {
-        return;
-    }
-
-    const amount = Math.max(220, Math.round(el.clientWidth * 0.7));
-    el.scrollTo({
-        left: dir === "left" ? el.scrollLeft - amount : el.scrollLeft + amount,
-        behavior: "smooth",
-    });
 };
 
 const selectReportWithAnimation = async (id: string) => {
@@ -663,21 +155,6 @@ const selectReportWithAnimation = async (id: string) => {
     } catch {
         // keep list payload if details endpoint is temporarily unavailable
     }
-
-    nextTick(() => {
-        const el = reportsSliderRef.value;
-        if (!el) {
-            return;
-        }
-        const btn = el.querySelector<HTMLButtonElement>(
-            `[data-report-id="${id}"]`,
-        );
-        if (btn) {
-            btn.classList.remove("report-chip--pulse");
-            void btn.offsetWidth;
-            btn.classList.add("report-chip--pulse");
-        }
-    });
 };
 
 const handleGenerateReport = async () => {
@@ -696,7 +173,8 @@ const handleGenerateReport = async () => {
 
     if (!hasDescription && hasResources) {
         toast.warning("Будет создан отчет: только метрики", {
-            description: "Заполни информацию о компании, чтобы получить полный отчет.",
+            description:
+                "Заполни информацию о компании, чтобы получить полный отчет.",
         });
     }
 
@@ -708,7 +186,6 @@ const handleGenerateReport = async () => {
 
     try {
         await reportsStore.generateReport(companyId.value);
-        nextTick(() => updateSliderState());
     } catch (error) {
         const status = Number(
             (error as { status?: number })?.status ??
@@ -726,328 +203,12 @@ const handleGenerateReport = async () => {
     }
 };
 
-const renderMarkdown = (value: string | null | undefined) => {
-    if (!value || !value.trim()) {
-        return "";
-    }
-
-    return marked.parse(value, {
-        breaks: true,
-        gfm: true,
-    }) as string;
-};
-
-const sanitizeFilename = (value: string) => {
-    return value
-        .replace(/[\\/:*?"<>|]+/g, "-")
-        .replace(/\s+/g, "-")
-        .replace(/-+/g, "-")
-        .replace(/^-|-$/g, "")
-        .toLowerCase();
-};
-
-const reportExportObject = (report: ReportOutDto) => {
-    return {
-        id: report.id,
-        reportType: report.reportType,
-        createdAt: report.createdAt,
-        resources: report.resources ?? [],
-        advices: report.advices,
-    };
-};
-
-const toXmlValue = (value: unknown, key: string): string => {
-    if (value === null || value === undefined) {
-        return `<${key}></${key}>`;
-    }
-
-    if (Array.isArray(value)) {
-        return `<${key}>${value.map((item) => toXmlValue(item, "item")).join("")}</${key}>`;
-    }
-
-    if (typeof value === "object") {
-        const entries = Object.entries(value as Record<string, unknown>)
-            .map(([childKey, childValue]) => toXmlValue(childValue, childKey))
-            .join("");
-        return `<${key}>${entries}</${key}>`;
-    }
-
-    const escaped = String(value)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&apos;");
-
-    return `<${key}>${escaped}</${key}>`;
-};
-
-const flattenReportForXlsx = (report: ReportOutDto) => {
-    const rows: Array<Record<string, string | number>> = [];
-
-    for (const resource of report.resources ?? []) {
-        for (const metric of resource.metrics ?? []) {
-            rows.push({
-                reportId: report.id,
-                reportType: report.reportType,
-                createdAt: report.createdAt,
-                resourceType: resource.resourceType,
-                resourceName: resource.name ?? "",
-                resourceUrl: resource.url ?? "",
-                metricId: metric.id,
-                metricTitle: metric.title,
-                currentValue: metric.currentValue,
-                minValue: metric.minValue,
-                maxValue: metric.maxValue,
-                postfix: metric.postfix ?? "",
-            });
-        }
-    }
-
-    if (rows.length === 0) {
-        rows.push({
-            reportId: report.id,
-            reportType: report.reportType,
-            createdAt: report.createdAt,
-            resourceType: "",
-            resourceName: "",
-            resourceUrl: "",
-            metricId: "",
-            metricTitle: "",
-            currentValue: "",
-            minValue: "",
-            maxValue: "",
-            postfix: "",
-        });
-    }
-
-    return rows;
-};
-
-const triggerDownload = (blob: Blob, filename: string) => {
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-};
-
-const downloadReport = (format: "json" | "xml" | "yaml" | "xlsx") => {
-    const report = selectedReport.value;
-    if (!report) {
-        return;
-    }
-
-    const baseName = sanitizeFilename(
-        `report-${report.id}-${formatShortDate(report.createdAt)}`,
-    );
-    const data = reportExportObject(report);
-
-    if (format === "json") {
-        const json = JSON.stringify(data, null, 2);
-        triggerDownload(
-            new Blob([json], { type: "application/json;charset=utf-8" }),
-            `${baseName}.json`,
-        );
-    }
-
-    if (format === "xml") {
-        const xml = `<?xml version="1.0" encoding="UTF-8"?>${toXmlValue(data, "report")}`;
-        triggerDownload(
-            new Blob([xml], { type: "application/xml;charset=utf-8" }),
-            `${baseName}.xml`,
-        );
-    }
-
-    if (format === "yaml") {
-        const yaml = YAML.stringify(data);
-        triggerDownload(
-            new Blob([yaml], { type: "text/yaml;charset=utf-8" }),
-            `${baseName}.yaml`,
-        );
-    }
-
-    if (format === "xlsx") {
-        const rows = flattenReportForXlsx(report);
-        const worksheet = XLSX.utils.json_to_sheet(rows);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
-        const output = XLSX.write(workbook, {
-            type: "array",
-            bookType: "xlsx",
-        });
-        triggerDownload(
-            new Blob([output], {
-                type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            }),
-            `${baseName}.xlsx`,
-        );
-    }
-
-    isExportDialogOpen.value = false;
-};
-
-const formatCreatedAt = (value: string) => {
-    const time = Date.parse(value);
-    if (!Number.isFinite(time)) {
-        return value;
-    }
-    return new Date(time).toLocaleString();
-};
-
-const formatShortDate = (value: string) => {
-    const time = Date.parse(value);
-    if (!Number.isFinite(time)) {
-        return value;
-    }
-    return new Date(time).toLocaleDateString();
-};
-
-const adviceSectionsForSelectedReport = computed(() => {
-    if (!selectedReport.value?.advices) {
-        return [];
-    }
-
-    return adviceSections(selectedReport.value.advices);
-});
-
-const adviceSectionOpenState = ref<Record<string, boolean>>({
-    analysis: true,
-    mistakes: true,
-    recommendations: true,
-});
-
-const isAdviceSectionOpen = (sectionId: string) => {
-    return adviceSectionOpenState.value[sectionId] ?? true;
-};
-
-const setAdviceSectionOpen = (sectionId: string, isOpen: boolean) => {
-    adviceSectionOpenState.value = {
-        ...adviceSectionOpenState.value,
-        [sectionId]: isOpen,
-    };
-};
-
-const adviceSections = (advices: ReportAdvicesDto) => {
-    return [
-        {
-            id: "analysis",
-            title: "Детальный анализ",
-            content: advices.analysis,
-        },
-        {
-            id: "mistakes",
-            title: "Ошибки",
-            content: advices.mistakes,
-        },
-        {
-            id: "recommendations",
-            title: "Рекомендации",
-            content: advices.recommendations,
-        },
-    ].filter((section) => isAdviceContentVisible(section.content));
-};
-
-const isAdviceContentVisible = (value: string | null | undefined) => {
-    if (!value || !value.trim()) {
-        return false;
-    }
-
-    const normalized = value.trim().toLowerCase();
-    return !normalized.startsWith("ошибка генерации");
-};
-
-const metricPercent = (metric: ReportMetricDto) => {
-    const min = metric.minValue;
-    const max = metric.maxValue;
-    const val = metric.currentValue;
-
-    if (
-        !Number.isFinite(min) ||
-        !Number.isFinite(max) ||
-        max <= min ||
-        !Number.isFinite(val)
-    ) {
-        return 0;
-    }
-
-    const clamped = Math.min(max, Math.max(min, val));
-    const ratio = (clamped - min) / (max - min);
-    return Math.max(0, Math.min(100, Math.round(ratio * 100)));
-};
-
-const metricBarWidth = (metric: ReportMetricDto) => {
-    return `${metricPercent(metric)}%`;
-};
-
-const formatMetricValue = (value: number, postfix?: string) => {
-    const normalized = Number.isInteger(value)
-        ? String(value)
-        : value
-              .toFixed(2)
-              .replace(/\.00$/, "")
-              .replace(/(\.\d)0$/, "$1");
-
-    return postfix ? `${normalized} ${postfix}` : normalized;
-};
-
-const formatMetricAxisValue = (value: number) => {
-    return Number.isInteger(value)
-        ? String(value)
-        : value
-              .toFixed(2)
-              .replace(/\.00$/, "")
-              .replace(/(\.\d)0$/, "$1");
-};
-
-const metricScaleTickValues = (metric: ReportMetricDto) => {
-    const min = metric.minValue;
-    const max = metric.maxValue;
-
-    if (!Number.isFinite(min) || !Number.isFinite(max) || max <= min) {
-        return [0, 25, 50, 75, 100];
-    }
-
-    const step = (max - min) / 4;
-    return [0, 1, 2, 3, 4].map((index) => min + step * index);
-};
-
-const metricFillClass = (pct: number) => {
-    if (pct < 35) return "bg-destructive/80";
-    if (pct < 70) return "bg-primary/70";
-    return "bg-primary";
-};
-
-const metricBadgeClass = (pct: number) => {
-    if (pct < 35) return "border-destructive/40 bg-destructive/10 text-destructive";
-    if (pct < 70) return "border-primary/30 bg-primary/10 text-primary";
-    return "border-primary/40 bg-primary/15 text-primary";
-};
-
-const resourceTypeIcon = (type: string) => {
-    if (type === "SITE") return Globe;
-    if (type === "TELEGRAM") return Send;
-    if (type === "VK") return MessageCircle;
-    return Globe;
-};
-
-const reportTypeLabel = (type: string) => {
-    if (type === "full") return "Полный отчет";
-    if (type === "metrics-only") return "Только метрики";
-    if (type === "advices-only") return "Только рекомендации";
-    return type;
-};
-
 onMounted(async () => {
     await Promise.all([
         reportsStore.fetchReports(companyId.value),
         fetchCompanyResources(),
         fetchCompanyDescription(),
     ]);
-    nextTick(() => updateSliderState());
 });
 
 watch(companyId, async () => {
@@ -1057,117 +218,9 @@ watch(companyId, async () => {
         fetchCompanyResources(),
         fetchCompanyDescription(),
     ]);
-    nextTick(() => updateSliderState());
 });
-
-onMounted(() => {
-    const el = reportsSliderRef.value;
-    if (!el) {
-        return;
-    }
-    el.addEventListener("scroll", updateSliderState, { passive: true });
-    updateSliderState();
-});
-
-watch(
-    () => reportsStore.sortedReports.length,
-    async () => {
-        await nextTick();
-        updateSliderState();
-    },
-);
-
-watch(
-    () => selectedReport.value?.id,
-    () => {
-        adviceSectionOpenState.value = {
-            analysis: true,
-            mistakes: true,
-            recommendations: true,
-        };
-    },
-);
 
 definePageMeta({
     middleware: "auth",
 });
 </script>
-
-<style scoped>
-.reports-slider {
-    scrollbar-width: none;
-}
-.reports-slider::-webkit-scrollbar {
-    display: none;
-}
-
-.report-chip {
-    transition:
-        transform 180ms ease,
-        box-shadow 180ms ease,
-        border-color 180ms ease,
-        background-color 180ms ease;
-}
-.report-chip:hover {
-    transform: translateY(-2px);
-}
-.report-chip--active {
-    background: hsl(var(--accent));
-    box-shadow: 0 0 0 2px hsl(var(--primary) / 0.25);
-}
-.report-chip--pulse {
-    animation: reportChipPulse 420ms ease-out;
-}
-
-@keyframes reportChipPulse {
-    0% {
-        transform: scale(1);
-        box-shadow: 0 0 0 0 hsl(var(--primary) / 0);
-    }
-    55% {
-        transform: scale(1.03);
-        box-shadow: 0 0 0 6px hsl(var(--primary) / 0.18);
-    }
-    100% {
-        transform: scale(1);
-        box-shadow: 0 0 0 0 hsl(var(--primary) / 0);
-    }
-}
-
-.report-fade-enter-active,
-.report-fade-leave-active {
-    transition:
-        opacity 180ms ease,
-        transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-.report-fade-enter-from,
-.report-fade-leave-to {
-    opacity: 0;
-    transform: translateY(6px);
-}
-.report-fade-enter-to,
-.report-fade-leave-from {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-.report-markdown :deep(p) {
-    margin-top: 0.35rem;
-    line-height: 1.5;
-}
-
-.report-markdown :deep(ul),
-.report-markdown :deep(ol) {
-    margin-top: 0.35rem;
-    margin-left: 1rem;
-}
-
-.report-markdown :deep(li) {
-    margin-top: 0.15rem;
-}
-
-.report-markdown :deep(strong) {
-    color: hsl(var(--foreground));
-    font-weight: 600;
-}
-</style>

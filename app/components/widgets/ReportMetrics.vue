@@ -1,44 +1,107 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue";
-import type { ReportOutDto, ReportMetricDto } from "~/repositories/reports.repository";
-import { cn } from "@/lib/utils";
-import { Globe, Send, MessageCircle } from "lucide-vue-next";
-import { Badge } from "@/components/ui/badge";
+import type { ReportMetricDto, ReportOutDto } from "~/repositories/reports.repository";
+import {
+    type ResourceOut,
+    EResourceType,
+} from "~/repositories/resources.repository";
+import { Globe, MessageCircle, Send } from "lucide-vue-next";
 
 const props = defineProps<{
     report: ReportOutDto;
+    companyResources?: ResourceOut[];
     class?: HTMLAttributes["class"];
 }>();
 
-const resourceMeta = (resource: { resourceType?: string; name?: string; url?: string }) => {
-    let name = resource.name ?? "";
-    let url = resource.url ?? "";
-
-    if (!name && resource.resourceType) {
-        if (resource.resourceType === "SITE") name = "Веб-сайт";
-        if (resource.resourceType === "VK") name = "ВКонтакте";
-        if (resource.resourceType === "TELEGRAM") name = "Telegram";
+const normalizeResourceType = (type: unknown): EResourceType | null => {
+    if (typeof type !== "string") {
+        return null;
     }
 
-    if (!name) name = "Ресурс";
+    const normalized = type.trim().toUpperCase();
 
-    return { name, url };
+    if (normalized === EResourceType.SITE) return EResourceType.SITE;
+    if (normalized === EResourceType.VK) return EResourceType.VK;
+    if (normalized === EResourceType.TELEGRAM) return EResourceType.TELEGRAM;
+
+    return null;
+};
+
+const normalizeUrl = (url: unknown): string => {
+    if (typeof url !== "string") {
+        return "";
+    }
+
+    const trimmed = url.trim();
+
+    if (!trimmed) {
+        return "";
+    }
+
+    if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+        return trimmed;
+    }
+
+    return `https://${trimmed}`;
+};
+
+const resourceMeta = (resource: {
+    resourceType: unknown;
+    name?: string;
+    url?: string;
+}) => {
+    const type = normalizeResourceType(resource.resourceType);
+
+    const reportName =
+        typeof resource.name === "string" ? resource.name.trim() : "";
+    const reportUrl = normalizeUrl(resource.url);
+
+    if (reportName || reportUrl) {
+        return {
+            name: reportName || "Ресурс",
+            url: reportUrl,
+            type,
+        };
+    }
+
+    const found = type
+        ? (props.companyResources ?? []).find((r) => r.type === type)
+        : undefined;
+
+    const fallbackName =
+        type === EResourceType.SITE
+            ? "Сайт"
+            : type === EResourceType.TELEGRAM
+              ? "Telegram"
+              : type === EResourceType.VK
+                ? "VK"
+                : "Ресурс";
+
+    return {
+        name: found?.name ?? fallbackName,
+        url: normalizeUrl(found?.url),
+        type,
+    };
 };
 
 const resourceTypeIcon = (type: string) => {
-    const uc = type?.toUpperCase() ?? "";
-    if (uc === "SITE") return Globe;
-    if (uc === "TELEGRAM") return Send;
-    if (uc === "VK") return MessageCircle;
+    if (type === "SITE") return Globe;
+    if (type === "TELEGRAM") return Send;
+    if (type === "VK") return MessageCircle;
     return Globe;
 };
 
 const metricPercent = (metric: ReportMetricDto) => {
-    const min = metric.minValue ?? 0;
-    const max = metric.maxValue ?? 100;
-    const val = metric.currentValue ?? 0;
+    const min = metric.minValue;
+    const max = metric.maxValue;
+    const val = metric.currentValue;
 
-    if (!Number.isFinite(min) || !Number.isFinite(max) || max <= min || !Number.isFinite(val)) {
+    if (
+        !Number.isFinite(min) ||
+        !Number.isFinite(max) ||
+        max <= min ||
+        !Number.isFinite(val)
+    ) {
         return 0;
     }
 
@@ -54,10 +117,10 @@ const metricBarWidth = (metric: ReportMetricDto) => {
 const formatMetricValue = (value: number, postfix?: string) => {
     const normalized = Number.isInteger(value)
         ? String(value)
-        : value.toLocaleString("ru-RU", {
-              minimumFractionDigits: 1,
-              maximumFractionDigits: 2,
-          });
+        : value
+              .toFixed(2)
+              .replace(/\.00$/, "")
+              .replace(/(\.\d)0$/, "$1");
 
     return postfix ? `${normalized} ${postfix}` : normalized;
 };
@@ -65,15 +128,15 @@ const formatMetricValue = (value: number, postfix?: string) => {
 const formatMetricAxisValue = (value: number) => {
     return Number.isInteger(value)
         ? String(value)
-        : value.toLocaleString("ru-RU", {
-              minimumFractionDigits: 1,
-              maximumFractionDigits: 1,
-          });
+        : value
+              .toFixed(2)
+              .replace(/\.00$/, "")
+              .replace(/(\.\d)0$/, "$1");
 };
 
 const metricScaleTickValues = (metric: ReportMetricDto) => {
-    const min = metric.minValue ?? 0;
-    const max = metric.maxValue ?? 100;
+    const min = metric.minValue;
+    const max = metric.maxValue;
 
     if (!Number.isFinite(min) || !Number.isFinite(max) || max <= min) {
         return [0, 25, 50, 75, 100];
@@ -125,36 +188,44 @@ const metricBadgeClass = (pct: number) => {
                     </a>
                 </div>
 
-                <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div class="mt-2 grid grid-cols-1 gap-2 md:grid-cols-2">
                     <div
                         v-for="metric in resource.metrics"
                         :key="metric.id"
-                        class="rounded-md border border-border/40 bg-card p-3"
+                        class="flex h-full flex-col rounded-md border border-border/60 bg-card p-3"
                     >
                         <div class="flex items-start justify-between gap-2">
-                            <p class="text-sm font-medium leading-none text-foreground">
+                            <p
+                                class="text-sm font-medium leading-snug text-foreground"
+                            >
                                 {{ metric.title }}
                             </p>
 
-                            <Badge
-                                variant="outline"
-                                class="font-mono text-[10px] leading-none tracking-tight h-5 px-1.5"
+                            <p
+                                class="shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium"
                                 :class="metricBadgeClass(metricPercent(metric))"
                             >
                                 {{ metricPercent(metric) }}%
-                            </Badge>
-                        </div>
-
-                        <div class="mt-1 flex items-baseline gap-1">
-                            <p class="text-[10px] text-muted-foreground leading-none">
-                                Значение
-                            </p>
-                            <p class="text-xs font-semibold leading-none text-foreground">
-                                {{ formatMetricValue(metric.currentValue, metric.postfix) }}
                             </p>
                         </div>
 
-                        <div class="relative mt-2 h-2.5 w-full overflow-hidden rounded-full bg-muted">
+                        <div class="mt-2 flex items-center justify-between gap-3 text-xs">
+                            <div class="min-w-0">
+                                <p class="text-[11px] text-muted-foreground">Значение</p>
+                                <p class="truncate font-medium text-foreground">
+                                    {{
+                                        formatMetricValue(
+                                            metric.currentValue,
+                                            metric.postfix,
+                                        )
+                                    }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div
+                            class="relative mt-2 h-2.5 w-full overflow-hidden rounded-full bg-muted"
+                        >
                             <div
                                 class="h-full rounded-full metric-bar transition-[width] duration-500 ease-out"
                                 :class="metricFillClass(metricPercent(metric))"
@@ -162,7 +233,9 @@ const metricBadgeClass = (pct: number) => {
                             />
                         </div>
 
-                        <div class="mt-1.5 grid grid-cols-5 text-[10px] text-muted-foreground">
+                        <div
+                            class="mt-1.5 grid grid-cols-5 text-[10px] text-muted-foreground"
+                        >
                             <span
                                 v-for="tick in metricScaleTickValues(metric)"
                                 :key="`${metric.id}-${tick}`"
