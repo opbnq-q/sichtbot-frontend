@@ -2,6 +2,8 @@ import type { ServerResponse } from "~/types/server-response.type";
 import { BaseRepository } from "./base.repository";
 import type { EResourceType } from "./resources.repository";
 
+export type ReportType = "metrics-only" | "advices-only" | "full";
+
 export type ReportMetricDto = {
   id: string;
   title: string;
@@ -13,6 +15,8 @@ export type ReportMetricDto = {
 
 export type ReportResourceDto = {
   resourceType: EResourceType;
+  name?: string;
+  url?: string;
   metrics: ReportMetricDto[];
 };
 
@@ -24,7 +28,7 @@ export type ReportAdvicesDto = {
 
 export type ReportOutDto = {
   id: string;
-  reportType: "week" | "month";
+  reportType: ReportType;
   createdAt: string;
   resources: ReportResourceDto[] | null;
   advices: ReportAdvicesDto | null;
@@ -47,19 +51,12 @@ export class ReportsRepository extends BaseRepository {
     companyId: string | number,
     params?: { limit?: number; offset?: number },
   ) {
-    const limit = params?.limit ?? 10;
-    const offset = params?.offset ?? 0;
-
     return await this.fetch<ServerResponse<ReportOutDto[]>>(
       `/report/company/${companyId}`,
       {
         method: "GET",
         headers: {
           Authorization: this.getToken(),
-        },
-        query: {
-          limit,
-          offset,
         },
       },
     );
