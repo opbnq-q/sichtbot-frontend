@@ -64,12 +64,44 @@ export class ReportsRepository extends BaseRepository {
     );
   }
 
-  async getById(id: string | number) {
-    return await this.fetch<ServerResponse<ReportOutDto>>(`/report/${id}`, {
-      method: "GET",
-      headers: {
-        Authorization: this.getToken(),
-      },
-    });
+  async getById(id: string | number, companyId?: string | number | null) {
+    const candidates = [
+      `/report/${id}`,
+      companyId !== undefined && companyId !== null
+        ? `/report/company/${companyId}/${id}`
+        : null,
+      companyId !== undefined && companyId !== null
+        ? `/report/company/${companyId}/report/${id}`
+        : null,
+    ].filter((url): url is string => Boolean(url));
+
+    let lastError: unknown = null;
+
+    for (const url of candidates) {
+      try {
+        const result = await this.fetch<
+          ServerResponse<ReportOutDto> | ReportOutDto | Record<string, unknown>
+        >(url, {
+          method: "GET",
+          headers: {
+            Authorization: this.getToken(),
+          },
+        });
+
+        if (result && typeof result === "object" && "status" in result) {
+          const wrapped = result as ServerResponse<ReportOutDto>;
+          if (wrapped.status === "error") {
+            lastError = wrapped;
+            continue;
+          }
+        }
+
+        return result;
+      } catch (error) {
+        lastError = error;
+      }
+    }
+
+    throw lastError;
   }
 }

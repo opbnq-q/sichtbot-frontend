@@ -88,15 +88,6 @@
                     </div>
 
                     <div v-else :key="selectedReport.id" class="space-y-4">
-                        <div
-                            class="flex flex-wrap items-center gap-3 rounded-md border border-border/60 bg-muted/20 px-3 py-2"
-                        >
-                            <div class="flex items-baseline gap-2">
-                                <span class="text-xs text-muted-foreground">Дата</span>
-                                <span class="text-sm text-foreground">{{ formatShortDate(selectedReport.createdAt) }}</span>
-                            </div>
-                        </div>
-
                         <UiCard
                             v-if="selectedReport.advices"
                             class="border-border/60"
