@@ -34,6 +34,8 @@ export type ReportOutDto = {
   advices: ReportAdvicesDto | null;
 };
 
+export type ReportListItemDto = ReportOutDto | { id: string } | string;
+
 export class ReportsRepository extends BaseRepository {
   async createForCompany(companyId: string | number) {
     return await this.fetch<ServerResponse<ReportOutDto>>(
@@ -51,7 +53,7 @@ export class ReportsRepository extends BaseRepository {
     companyId: string | number,
     params?: { limit?: number; offset?: number },
   ) {
-    return await this.fetch<ServerResponse<ReportOutDto[]>>(
+    return await this.fetch<ServerResponse<ReportListItemDto[]>>(
       `/report/company/${companyId}`,
       {
         method: "GET",
@@ -60,5 +62,14 @@ export class ReportsRepository extends BaseRepository {
         },
       },
     );
+  }
+
+  async getById(id: string | number) {
+    return await this.fetch<ServerResponse<ReportOutDto>>(`/report/${id}`, {
+      method: "GET",
+      headers: {
+        Authorization: this.getToken(),
+      },
+    });
   }
 }

@@ -98,7 +98,7 @@
                         </div>
 
                         <UiCard
-                            v-if="adviceSectionsForSelectedReport.length > 0"
+                            v-if="selectedReport.advices"
                             class="border-border/60"
                         >
                             <UiCardHeader class="px-4 py-3">
@@ -107,7 +107,10 @@
 
                             <UiSeparator />
 
-                            <UiCardContent class="px-4 py-0">
+                            <UiCardContent
+                                v-if="adviceSectionsForSelectedReport.length > 0"
+                                class="px-4 py-0"
+                            >
                                 <section
                                     v-for="(section, index) in adviceSectionsForSelectedReport"
                                     :key="section.id"
@@ -156,7 +159,7 @@
                         </UiCard>
 
                     <div
-                        v-else
+                        v-else-if="!selectedReport.advices"
                         class="rounded-lg border border-border/60 bg-card p-4"
                     >
                         <p class="text-sm text-muted-foreground">
@@ -291,16 +294,23 @@
             </UiCardContent>
         </UiCard>
 
-        <UiCard class="p-4">
-            <div class="flex flex-wrap items-start justify-between gap-2">
-                <div class="space-y-1">
-                    <UiCardTitle>Отчеты</UiCardTitle>
-                </div>
+        <UiCard class="overflow-hidden border-border/60">
+            <UiCardHeader class="px-4 py-2 md:px-5">
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2">
+                            <UiCardTitle>Отчеты</UiCardTitle>
+                            <Badge variant="secondary">
+                                {{ reportsStore.sortedReports.length }}
+                            </Badge>
+                        </div>
+                    </div>
 
-                <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-1 rounded-lg border border-border/50 bg-muted/40 p-1">
                     <UiButton
                         variant="outline"
                         size="icon-sm"
+                        class="bg-background/80"
                         aria-label="Влево"
                         :disabled="isPrevDisabled"
                         @click="scrollReports('left')"
@@ -311,6 +321,7 @@
                     <UiButton
                         variant="outline"
                         size="icon-sm"
+                        class="bg-background/80"
                         aria-label="Вправо"
                         :disabled="isNextDisabled"
                         @click="scrollReports('right')"
@@ -318,19 +329,22 @@
                         <ChevronRight class="size-4" />
                     </UiButton>
                 </div>
-            </div>
+                </div>
+            </UiCardHeader>
+
+            <UiCardContent class="px-4 py-2 md:px-5">
 
             <div
                 v-if="reportsStore.sortedReports.length === 0"
-                class="mt-4 rounded-lg border border-border/60 bg-card/80 p-4"
+                class="rounded-lg border border-border/60 bg-card/80 p-4"
             >
                 <p class="text-sm text-muted-foreground">Пока нет отчетов.</p>
             </div>
 
-            <div v-else class="mt-4">
+            <div v-else>
                 <div
                     ref="reportsSliderRef"
-                    class="reports-slider flex gap-2 overflow-x-auto pb-2"
+                    class="reports-slider flex gap-1.5 overflow-x-auto pb-1"
                 >
                     <UiButton
                         v-for="(report, index) in reportButtons"
@@ -338,29 +352,32 @@
                         :data-report-id="report.id"
                         variant="outline"
                         size="sm"
-                        class="shrink-0 report-chip"
+                        class="h-auto min-w-38 shrink-0 justify-start rounded-lg px-3 py-2 report-chip"
                         :class="{
                             'border-primary text-primary report-chip--active':
                                 reportsStore.selectedReportId === report.id,
                         }"
                         @click="selectReportWithAnimation(report.id)"
                     >
-                        <span class="font-medium">№{{ reportNumber(index) }}</span>
-                        <span class="text-muted-foreground">
-                            {{ formatShortDate(report.createdAt) }}
-                        </span>
+                        <div class="flex min-w-0 flex-col items-start gap-0.5 text-left leading-tight">
+                            <span class="font-medium">Отчет №{{ reportNumber(index) }}</span>
+                            <span class="text-xs text-muted-foreground">
+                                {{ formatShortDate(report.createdAt) }}
+                            </span>
+                        </div>
                     </UiButton>
                 </div>
 
-                <div class="mt-2 h-1 w-full rounded-full bg-muted/50">
+                <div class="mt-1 h-1.5 w-full rounded-full bg-muted/60">
                     <div
-                        class="h-full rounded-full bg-primary/70 transition-[width,transform] duration-300 ease-out"
+                        class="h-full rounded-full bg-primary transition-[width,transform] duration-300 ease-out"
                         :style="{
                             width: `${sliderProgress}%`,
                         }"
                     />
                 </div>
             </div>
+            </UiCardContent>
         </UiCard>
     </div>
 
@@ -649,8 +666,13 @@ const scrollReports = (dir: "left" | "right") => {
     });
 };
 
-const selectReportWithAnimation = (id: string) => {
-    reportsStore.setSelectedReportId(id);
+const selectReportWithAnimation = async (id: string) => {
+    try {
+        await reportsStore.setSelectedReportId(id);
+    } catch {
+        // keep list payload if details endpoint is temporarily unavailable
+    }
+
     nextTick(() => {
         const el = reportsSliderRef.value;
         if (!el) {
@@ -1092,13 +1114,15 @@ definePageMeta({
     transition:
         transform 180ms ease,
         box-shadow 180ms ease,
-        border-color 180ms ease;
+        border-color 180ms ease,
+        background-color 180ms ease;
 }
 .report-chip:hover {
-    transform: translateY(-1px);
+    transform: translateY(-2px);
 }
 .report-chip--active {
-    box-shadow: 0 0 0 3px rgb(59 130 246 / 0.18);
+    background: hsl(var(--accent));
+    box-shadow: 0 0 0 2px hsl(var(--primary) / 0.25);
 }
 .report-chip--pulse {
     animation: reportChipPulse 420ms ease-out;
@@ -1107,15 +1131,15 @@ definePageMeta({
 @keyframes reportChipPulse {
     0% {
         transform: scale(1);
-        box-shadow: 0 0 0 0 rgb(59 130 246 / 0);
+        box-shadow: 0 0 0 0 hsl(var(--primary) / 0);
     }
     55% {
         transform: scale(1.03);
-        box-shadow: 0 0 0 6px rgb(59 130 246 / 0.18);
+        box-shadow: 0 0 0 6px hsl(var(--primary) / 0.18);
     }
     100% {
         transform: scale(1);
-        box-shadow: 0 0 0 0 rgb(59 130 246 / 0);
+        box-shadow: 0 0 0 0 hsl(var(--primary) / 0);
     }
 }
 
