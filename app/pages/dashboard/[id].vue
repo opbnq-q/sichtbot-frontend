@@ -28,7 +28,7 @@
 
         <WidgetsCompanyDetailsManager :route-id-label="routeIdLabel" />
 
-        <UiCard class="relative p-4">
+        <UiCard class="relative overflow-hidden">
             <div
                 v-if="reportsStore.isGenerating"
                 class="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-background/70 backdrop-blur-[1px]"
@@ -36,108 +36,118 @@
                 <KitHammerLoadingAnimation />
             </div>
 
-            <div class="flex flex-wrap items-start justify-between gap-3">
-                <div class="space-y-1">
-                    <UiCardTitle>Отчет</UiCardTitle>
-                </div>
-
-                <div
-                    v-if="selectedReport"
-                    class="flex flex-wrap items-center gap-2"
-                >
-                    <span
-                        class="rounded-md border border-border/60 bg-background/60 px-2 py-1 text-xs text-muted-foreground"
-                    >
-                        {{ reportTypeLabel(selectedReport.reportType) }}
-                    </span>
-                    <span class="text-xs text-muted-foreground">
-                        {{ formatCreatedAt(selectedReport.createdAt) }}
-                    </span>
-                </div>
-            </div>
-
-            <div
-                v-if="reportsStore.isLoading && !reportsStore.hasFetched"
-                class="space-y-3 animate-pulse"
-            >
-                <div class="h-5 w-1/3 rounded-md bg-muted" />
-                <div class="h-4 w-full rounded-md bg-muted/80" />
-                <div class="h-4 w-4/5 rounded-md bg-muted/70" />
-            </div>
-
-            <Transition name="report-fade" mode="out-in">
-                <div
-                    v-if="!selectedReport"
-                    key="empty"
-                    class="rounded-lg border border-border/60 bg-card/80 p-4"
-                >
-                    <p class="text-sm text-muted-foreground">
-                        Нет выбранного отчета. Сформируй новый или выбери из
-                        списка ниже.
-                    </p>
-                </div>
-
-                <div v-else :key="selectedReport.id" class="space-y-4">
-                    <div v-if="selectedReport.advices" class="space-y-2">
-                        <div
-                            class="rounded-md border border-border/50 bg-background/40 p-3"
-                        >
-                            <p
-                                class="text-xs tracking-wide text-muted-foreground"
-                            >
-                                Анализ
-                            </p>
-                            <div
-                                class="mt-1 text-sm text-foreground report-markdown"
-                                v-html="
-                                    renderMarkdown(
-                                        selectedReport.advices.analysis,
-                                    )
-                                "
-                            />
+            <UiCardHeader class="px-4 pt-4 pb-3 md:px-6">
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2">
+                            <UiCardTitle>Анализ ресурсов</UiCardTitle>
+                            <Badge variant="secondary">Полный</Badge>
                         </div>
-
-                        <div
-                            class="rounded-md border border-border/50 bg-background/40 p-3"
+                        <UiCardDescription
+                            v-if="selectedReport"
+                            class="text-muted-foreground"
                         >
-                            <p
-                                class="text-xs tracking-wide text-muted-foreground"
-                            >
-                                Ошибки
-                            </p>
-                            <div
-                                class="mt-1 text-sm text-foreground report-markdown"
-                                v-html="
-                                    renderMarkdown(
-                                        selectedReport.advices.mistakes,
-                                    )
-                                "
-                            />
-                        </div>
-
-                        <div
-                            class="rounded-md border border-border/50 bg-background/40 p-3"
-                        >
-                            <p
-                                class="text-xs tracking-wide text-muted-foreground"
-                            >
-                                Рекомендации
-                            </p>
-                            <div
-                                class="mt-1 text-sm text-foreground report-markdown"
-                                v-html="
-                                    renderMarkdown(
-                                        selectedReport.advices
-                                            .recommendations,
-                                    )
-                                "
-                            />
-                        </div>
+                            {{ formatCreatedAt(selectedReport.createdAt) }}
+                        </UiCardDescription>
                     </div>
+                </div>
+            </UiCardHeader>
+
+            <UiSeparator />
+
+            <UiCardContent class="px-4 py-4 md:px-6">
+                <div
+                    v-if="reportsStore.isLoading && !reportsStore.hasFetched"
+                    class="space-y-3 animate-pulse"
+                >
+                    <div class="h-5 w-1/3 rounded-md bg-muted" />
+                    <div class="h-4 w-full rounded-md bg-muted/80" />
+                    <div class="h-4 w-4/5 rounded-md bg-muted/70" />
+                </div>
+
+                <Transition name="report-fade" mode="out-in">
+                    <div
+                        v-if="!selectedReport"
+                        key="empty"
+                        class="rounded-lg border border-border/60 bg-card p-4"
+                    >
+                        <p class="text-sm text-muted-foreground">
+                            Нет выбранного отчета. Сформируй новый или выбери из
+                            списка ниже.
+                        </p>
+                    </div>
+
+                    <div v-else :key="selectedReport.id" class="space-y-4">
+                        <div
+                            class="flex flex-wrap items-center gap-3 rounded-md border border-border/60 bg-muted/20 px-3 py-2"
+                        >
+                            <div class="flex items-baseline gap-2">
+                                <span class="text-xs text-muted-foreground">Дата</span>
+                                <span class="text-sm text-foreground">{{ formatShortDate(selectedReport.createdAt) }}</span>
+                            </div>
+                        </div>
+
+                        <UiCard
+                            v-if="adviceSectionsForSelectedReport.length > 0"
+                            class="border-border/60"
+                        >
+                            <UiCardHeader class="px-4 py-3">
+                                <UiCardTitle class="text-sm">Результаты и рекомендации</UiCardTitle>
+                            </UiCardHeader>
+
+                            <UiSeparator />
+
+                            <UiCardContent class="px-4 py-0">
+                                <section
+                                    v-for="(section, index) in adviceSectionsForSelectedReport"
+                                    :key="section.id"
+                                    class="py-3"
+                                >
+                                    <Collapsible
+                                        :open="isAdviceSectionOpen(section.id)"
+                                        @update:open="(value) => setAdviceSectionOpen(section.id, value)"
+                                    >
+                                        <div class="flex items-center justify-between gap-2">
+                                            <p class="text-xs text-muted-foreground">
+                                                {{ section.title }}
+                                            </p>
+
+                                            <CollapsibleTrigger as-child>
+                                                <UiButton
+                                                    variant="ghost"
+                                                    size="icon-sm"
+                                                    type="button"
+                                                    class="size-7"
+                                                >
+                                                    <ChevronDown
+                                                        class="size-4 transition-transform"
+                                                        :class="{
+                                                            'rotate-180': isAdviceSectionOpen(section.id),
+                                                        }"
+                                                    />
+                                                </UiButton>
+                                            </CollapsibleTrigger>
+                                        </div>
+
+                                        <CollapsibleContent>
+                                            <div
+                                                class="mt-2 text-sm text-foreground report-markdown"
+                                                v-html="renderMarkdown(section.content)"
+                                            />
+                                        </CollapsibleContent>
+                                    </Collapsible>
+
+                                    <UiSeparator
+                                        v-if="index < adviceSectionsForSelectedReport.length - 1"
+                                        class="mt-3"
+                                    />
+                                </section>
+                            </UiCardContent>
+                        </UiCard>
 
                     <div
                         v-else
-                        class="rounded-lg border border-border/60 bg-card/80 p-4"
+                        class="rounded-lg border border-border/60 bg-card p-4"
                     >
                         <p class="text-sm text-muted-foreground">
                             Для этого отчета нет текстовых рекомендаций.
@@ -189,20 +199,36 @@
                                 <div
                                     v-for="metric in resource.metrics"
                                     :key="metric.id"
-                                    class="rounded-md border border-border/60 bg-card p-3"
+                                    class="flex h-full flex-col rounded-md border border-border/60 bg-card p-3"
                                 >
                                     <div
                                         class="flex items-start justify-between gap-2"
                                     >
-                                        <p class="text-sm font-medium text-foreground">
+                                        <p class="text-sm font-medium leading-snug text-foreground">
                                             {{ metric.title }}
                                         </p>
                                         <p
-                                            class="rounded-full border px-2 py-0.5 text-xs font-medium"
+                                            class="shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium"
                                             :class="metricBadgeClass(metricPercent(metric))"
                                         >
                                             {{ metricPercent(metric) }}%
                                         </p>
+                                    </div>
+
+                                    <div
+                                        class="mt-2 flex items-center justify-between gap-3 text-xs"
+                                    >
+                                        <div class="min-w-0">
+                                            <p class="text-[11px] text-muted-foreground">Значение</p>
+                                            <p class="truncate font-medium text-foreground">
+                                                {{
+                                                    formatMetricValue(
+                                                        metric.currentValue,
+                                                        metric.postfix,
+                                                    )
+                                                }}
+                                            </p>
+                                        </div>
                                     </div>
 
                                     <div
@@ -221,39 +247,11 @@
                                         class="mt-1.5 grid grid-cols-5 text-[10px] text-muted-foreground"
                                     >
                                         <span
-                                            v-for="tick in metricScaleTicks"
+                                            v-for="tick in metricScaleTickValues(metric)"
                                             :key="`${metric.id}-${tick}`"
                                             class="text-center first:text-left last:text-right"
                                         >
-                                            {{ tick }}
-                                        </span>
-                                    </div>
-
-                                    <div
-                                        class="mt-2 flex items-center justify-between text-xs text-muted-foreground"
-                                    >
-                                        <span>
-                                            {{
-                                                formatMetricValue(
-                                                    metric.currentValue,
-                                                    metric.postfix,
-                                                )
-                                            }}
-                                        </span>
-                                        <span>
-                                            {{
-                                                formatMetricValue(
-                                                    metric.minValue,
-                                                    metric.postfix,
-                                                )
-                                            }}
-                                            —
-                                            {{
-                                                formatMetricValue(
-                                                    metric.maxValue,
-                                                    metric.postfix,
-                                                )
-                                            }}
+                                            {{ formatMetricAxisValue(tick) }}
                                         </span>
                                     </div>
                                 </div>
@@ -278,8 +276,9 @@
                             Для этого отчета нет данных по ресурсам.
                         </p>
                     </div>
-                </div>
-            </Transition>
+                    </div>
+                </Transition>
+            </UiCardContent>
         </UiCard>
 
         <UiCard class="p-4">
@@ -359,6 +358,7 @@
 
 <script lang="ts" setup>
 import type { ReportMetricDto } from "~/repositories/reports.repository";
+import type { ReportAdvicesDto } from "~/repositories/reports.repository";
 import {
     type ResourceOut,
     EResourceType,
@@ -367,6 +367,7 @@ import type { CompanyOut } from "~/repositories/resources.repository";
 import { useReportsStore } from "~/stores/reports.store";
 import type { ServerResponse } from "~/types/server-response.type";
 import {
+    ChevronDown,
     ChevronLeft,
     ChevronRight,
     Globe,
@@ -375,6 +376,12 @@ import {
 } from "lucide-vue-next";
 import { toast } from "vue-sonner";
 import { marked } from "marked";
+import { Badge } from "@/components/ui/badge";
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 const route = useRoute();
 
@@ -670,6 +677,60 @@ const formatShortDate = (value: string) => {
     return new Date(time).toLocaleDateString();
 };
 
+const adviceSectionsForSelectedReport = computed(() => {
+    if (!selectedReport.value?.advices) {
+        return [];
+    }
+
+    return adviceSections(selectedReport.value.advices);
+});
+
+const adviceSectionOpenState = ref<Record<string, boolean>>({
+    analysis: true,
+    mistakes: true,
+    recommendations: true,
+});
+
+const isAdviceSectionOpen = (sectionId: string) => {
+    return adviceSectionOpenState.value[sectionId] ?? true;
+};
+
+const setAdviceSectionOpen = (sectionId: string, isOpen: boolean) => {
+    adviceSectionOpenState.value = {
+        ...adviceSectionOpenState.value,
+        [sectionId]: isOpen,
+    };
+};
+
+const adviceSections = (advices: ReportAdvicesDto) => {
+    return [
+        {
+            id: "analysis",
+            title: "Детальный анализ",
+            content: advices.analysis,
+        },
+        {
+            id: "mistakes",
+            title: "Ошибки",
+            content: advices.mistakes,
+        },
+        {
+            id: "recommendations",
+            title: "Рекомендации",
+            content: advices.recommendations,
+        },
+    ].filter((section) => isAdviceContentVisible(section.content));
+};
+
+const isAdviceContentVisible = (value: string | null | undefined) => {
+    if (!value || !value.trim()) {
+        return false;
+    }
+
+    const normalized = value.trim().toLowerCase();
+    return !normalized.startsWith("ошибка генерации");
+};
+
 const metricPercent = (metric: ReportMetricDto) => {
     const min = metric.minValue;
     const max = metric.maxValue;
@@ -693,8 +754,6 @@ const metricBarWidth = (metric: ReportMetricDto) => {
     return `${metricPercent(metric)}%`;
 };
 
-const metricScaleTicks = [0, 25, 50, 75, 100] as const;
-
 const formatMetricValue = (value: number, postfix?: string) => {
     const normalized = Number.isInteger(value)
         ? String(value)
@@ -704,6 +763,27 @@ const formatMetricValue = (value: number, postfix?: string) => {
               .replace(/(\.\d)0$/, "$1");
 
     return postfix ? `${normalized} ${postfix}` : normalized;
+};
+
+const formatMetricAxisValue = (value: number) => {
+    return Number.isInteger(value)
+        ? String(value)
+        : value
+              .toFixed(2)
+              .replace(/\.00$/, "")
+              .replace(/(\.\d)0$/, "$1");
+};
+
+const metricScaleTickValues = (metric: ReportMetricDto) => {
+    const min = metric.minValue;
+    const max = metric.maxValue;
+
+    if (!Number.isFinite(min) || !Number.isFinite(max) || max <= min) {
+        return [0, 25, 50, 75, 100];
+    }
+
+    const step = (max - min) / 4;
+    return [0, 1, 2, 3, 4].map((index) => min + step * index);
 };
 
 const metricFillClass = (pct: number) => {
@@ -765,6 +845,17 @@ watch(
     async () => {
         await nextTick();
         updateSliderState();
+    },
+);
+
+watch(
+    () => selectedReport.value?.id,
+    () => {
+        adviceSectionOpenState.value = {
+            analysis: true,
+            mistakes: true,
+            recommendations: true,
+        };
     },
 );
 

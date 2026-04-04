@@ -1,10 +1,14 @@
 <template>
+  <Collapsible
+    :open="!props.isCollapsed"
+    @update:open="onCollapseOpenChange"
+  >
   <UiCard class="p-4">
     <div class="flex flex-wrap items-start justify-between gap-4">
       <div class="flex flex-col gap-2">
         <UiCardTitle>{{ props.company?.name || `Карточка компании #${props.routeId}` }}</UiCardTitle>
         <UiCardDescription>
-          {{ props.isEditing ? 'Режим редактирования' : 'Информация о компании' }}
+          {{ props.isEditing ? 'Режим редактирования' : 'Профиль компании' }}
         </UiCardDescription>
       </div>
 
@@ -12,13 +16,21 @@
         <UiButton v-if="!props.isCollapsed" variant="secondary" size="sm" @click="emits('toggleEdit')">
           {{ props.isEditing ? 'Отменить' : 'Изменить' }}
         </UiButton>
-        <UiButton variant="outline" size="sm" @click="emits('toggleCollapse')">
-          {{ props.isCollapsed ? 'Развернуть' : 'Свернуть' }}
-        </UiButton>
+
+        <CollapsibleTrigger as-child>
+          <UiButton variant="ghost" size="icon" type="button">
+            <ChevronDown
+              class="size-4 transition-transform"
+              :class="{ 'rotate-180': !props.isCollapsed }"
+            />
+            <span class="sr-only">Переключить профиль компании</span>
+          </UiButton>
+        </CollapsibleTrigger>
       </div>
     </div>
 
-    <Transition name="expand">
+    <CollapsibleContent>
+      <Transition name="expand">
       <div v-if="!props.isCollapsed" class="mt-4 overflow-hidden">
         <div v-if="props.isLoading" class="space-y-3 animate-pulse">
           <div class="h-5 w-1/3 rounded-md bg-muted" />
@@ -94,12 +106,16 @@
         </form>
       </div>
     </Transition>
+    </CollapsibleContent>
   </UiCard>
+  </Collapsible>
 </template>
 
 <script lang="ts" setup>
 import { textareaPlacholder } from '~/consts/description.placeholder'
 import { Keywords } from '~/types/combinepressed'
+import { ChevronDown } from 'lucide-vue-next'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 
 export type CompanyCardModel = {
   id: string | number
@@ -128,6 +144,12 @@ const emits = defineEmits<{
   (e: 'update:formName', value: string): void
   (e: 'update:formDescription', value: string): void
 }>()
+
+const onCollapseOpenChange = (isOpen: boolean) => {
+  if (isOpen !== !props.isCollapsed) {
+    emits('toggleCollapse')
+  }
+}
 </script>
 
 <style scoped>
