@@ -136,13 +136,13 @@ const metricBadgeClass = (pct: number) => {
                                 {{ metric.title }}
                             </p>
 
-                            <UiBadge
+                            <Badge
                                 variant="outline"
                                 class="font-mono text-[10px] leading-none tracking-tight h-5 px-1.5"
                                 :class="metricBadgeClass(metricPercent(metric))"
                             >
                                 {{ metricPercent(metric) }}%
-                            </UiBadge>
+                            </Badge>
                         </div>
 
                         <div class="mt-1 flex items-baseline gap-1">

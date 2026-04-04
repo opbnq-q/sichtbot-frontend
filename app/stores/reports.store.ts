@@ -183,7 +183,7 @@ export const useReportsStore = defineStore("reports", () => {
 
     selectedReport.value = null;
 
-    const response = await repository.getById(normalizedId, activeCompanyId.value);
+    const response = await repository.getById(normalizedId);
     const report = extractReportFromUnknown(response);
 
     if (selectedReportId.value !== normalizedId) {
@@ -240,7 +240,7 @@ export const useReportsStore = defineStore("reports", () => {
 
       if (ids.length > 0) {
         const details = await Promise.all(
-          ids.map((id) => repository.getById(id, activeCompanyId.value)),
+          ids.map((id) => repository.getById(id)),
         );
         reports.value = details
           .map((item) => extractReportFromUnknown(item))

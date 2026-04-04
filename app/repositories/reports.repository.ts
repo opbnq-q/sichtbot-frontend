@@ -64,15 +64,9 @@ export class ReportsRepository extends BaseRepository {
     );
   }
 
-  async getById(id: string | number, companyId?: string | number | null) {
+  async getById(id: string | number) {
     const candidates = [
-      `/report/${id}`,
-      companyId !== undefined && companyId !== null
-        ? `/report/company/${companyId}/${id}`
-        : null,
-      companyId !== undefined && companyId !== null
-        ? `/report/company/${companyId}/report/${id}`
-        : null,
+      `/report/${id}`
     ].filter((url): url is string => Boolean(url));
 
     let lastError: unknown = null;
