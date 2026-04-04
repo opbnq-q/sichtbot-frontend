@@ -39,7 +39,7 @@ const emits = defineEmits<{
 
     <Card>
       <CardHeader>
-        <CardTitle>Введите шестизначный код</CardTitle>
+        <CardTitle>Введите четырехзначный код</CardTitle>
         <CardDescription>Код отправлен на ваш Email</CardDescription>
       </CardHeader>
       <CardContent>
