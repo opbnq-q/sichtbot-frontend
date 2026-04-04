@@ -12,7 +12,7 @@
                 <div class="space-y-1">
                     <div class="flex items-center gap-2">
                         <UiCardTitle>Анализ ресурсов</UiCardTitle>
-                        <Badge variant="secondary">{{ getReportTypeTitle(props.report?.reportType ?? 'error') }}</Badge>
+                        <Badge variant="secondary">{{ getReportTypeTitle(props.report?.reportType ?? 'empty') }}</Badge>
                     </div>
                     <UiCardDescription
                         v-if="props.report"

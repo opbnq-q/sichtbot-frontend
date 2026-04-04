@@ -1,6 +1,6 @@
 import type { ReportType } from "~/repositories/reports.repository";
 
-export function getReportTypeTitle(reportType: ReportType | 'error'): string {
+export function getReportTypeTitle(reportType: ReportType | 'empty'): string {
     switch (reportType) {
         case "full":
             return "Полный";
@@ -8,6 +8,8 @@ export function getReportTypeTitle(reportType: ReportType | 'error'): string {
             return "Рекомендации";
         case "metrics-only":
             return "Метрики";
+        case 'empty':
+            return 'Пусто'
         default:
             return "Ошибка";
     }
